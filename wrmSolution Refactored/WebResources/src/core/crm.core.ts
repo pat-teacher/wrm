@@ -1,9 +1,44 @@
-// crm.core.ts � Generic Core Utilities & Services (keine Abh�ngigkeiten zu Entities)
+// ---- Types shared across engine & entities ----
+export type Operator = "eq" | "ne" | "in" | "isnull" | "isnotnull" | "notnull"; // alias
 
-/** Core helpers */
+export interface Condition {
+    /** Logical name (supports dot-notation for lookup projections: e.g., "primarycontactid.name"). */
+    field: string;
+    operator: Operator;
+    /** Optional value for comparisons (omitted for null-operators). */
+    value?: unknown;
+}
+
+export interface Rule {
+    name?: string;
+    mandatory?: string[];
+    condition?: Condition[]; // AND-conjunction; empty/undefined ⇒ rule always matches
+}
+
+export interface EntityConfig {
+    default?: string[];
+    rules?: Rule[];
+}
+
+export interface BusinessUnitConfig {
+    version: number;
+    entities: Record<string, EntityConfig>;
+}
+
+/** Lightweight comparable representation of a lookup */
+export interface LookupComparable {
+    id: string | null;
+    name: string | null;
+    entityType: string | null;
+}
+
+// ---- Core helpers ----
 export class Util {
-    static get Xrm(): any { return (window as any).Xrm; }
+    static get Xrm(): any {
+        return (window as any).Xrm;
+    }
 
+    /** Lowercase, strip braces; returns empty string if falsy input. */
     static sanitizeGuid(id?: string): string {
         return (id || "").replace(/[{}]/g, "").toLowerCase();
     }
@@ -13,7 +48,7 @@ export class Util {
     }
 }
 
-/** Thin Web API wrapper */
+// ---- Thin Web API wrapper ----
 export class ApiClient {
     static async retrieveRecord(entityLogicalName: string, id: string, options?: string): Promise<any> {
         const cleanId = Util.sanitizeGuid(id);
@@ -42,11 +77,11 @@ export class ApiClient {
     ): Promise<void> {
         const req = {
             target: { entityType: parentEntityLogical, id: Util.sanitizeGuid(parentId) },
-            relatedEntities: relatedIds.map(id => ({ entityType: relatedEntityLogical, id: Util.sanitizeGuid(id) })),
+            relatedEntities: relatedIds.map((rid) => ({ entityType: relatedEntityLogical, id: Util.sanitizeGuid(rid) })),
             relationship: relationshipSchemaName,
             getMetadata: function () {
                 return { boundParameter: null, parameterTypes: {}, operationType: 2, operationName: "Associate" };
-            }
+            },
         } as any;
 
         const response = await ApiClient.execute(req);
@@ -54,13 +89,15 @@ export class ApiClient {
     }
 }
 
-/** Form helpers */
+// ---- Form helpers ----
 export class FormHelper {
     static getCurrentId(fc: any): string | null {
         try {
             const idRaw = fc?.data?.entity?.getId?.();
             return idRaw ? Util.sanitizeGuid(idRaw) : null;
-        } catch { return null; }
+        } catch {
+            return null;
+        }
     }
 
     static getLookupId(fc: any, attribute: string): string | undefined {
@@ -73,23 +110,44 @@ export class GridHelper {
     static tryRefreshSubgrid(fc: any, name?: string) {
         if (!name) return;
         const grid = fc?.getControl?.(name);
-        if (grid?.refresh) { try { grid.refresh(); } catch { /* ignore */ } }
-        else { try { fc?.ui?.refreshRibbon?.(); } catch { /* ignore */ } }
+        if (grid?.refresh) {
+            try {
+                grid.refresh();
+            } catch {
+                /* ignore */
+            }
+        } else {
+            try {
+                fc?.ui?.refreshRibbon?.();
+            } catch {
+                /* ignore */
+            }
+        }
     }
 }
 
-/** Visibility helpers */
+// ---- Visibility helpers ----
 export class VisibilityHelper {
     static setVisible(fc: any, controlName: string, visible: boolean) {
         const ctrl = fc?.getControl?.(controlName);
-        if (ctrl?.setVisible) { try { ctrl.setVisible(visible); } catch { /* ignore */ } }
+        if (ctrl?.setVisible) {
+            try {
+                ctrl.setVisible(visible);
+            } catch {
+                /* ignore */
+            }
+        }
     }
 
-    /** Setzt das Pflichtfeld-Flag für ein Control */
+    /** Sets required level on an attribute/control */
     static setRequired(fc: any, controlName: string, isRequired: boolean) {
         const attr = fc?.getAttribute?.(controlName);
         if (attr?.setRequiredLevel) {
-            try { attr.setRequiredLevel(isRequired ? "required" : "none"); } catch { /* ignore */ }
+            try {
+                attr.setRequiredLevel(isRequired ? "required" : "none");
+            } catch {
+                /* ignore */
+            }
         }
     }
 
@@ -107,7 +165,7 @@ export class VisibilityHelper {
     }
 }
 
-/** Lookup dialog helper */
+// ---- Lookup dialog helper ----
 export interface LookupResult {
     id: string;
     entityType: string;
@@ -119,10 +177,10 @@ export class LookupDialogHelper {
         entityLogical: string,
         idAttribute: string,
         ids: string[],
-        options?: Partial<{ allowMultiSelect: boolean; disableMru: boolean; defaultViewId: string; }>
+        options?: Partial<{ allowMultiSelect: boolean; disableMru: boolean; defaultViewId: string }>
     ): Promise<LookupResult[]> {
         const inValues = ids
-            .map(id => `<value uitype="${entityLogical}">{${Util.sanitizeGuid(id)}}</value>`)
+            .map((id) => `<value uitype="${entityLogical}">{${Util.sanitizeGuid(id)}}</value>`)
             .join("");
 
         const filterXml = `
@@ -143,17 +201,16 @@ export class LookupDialogHelper {
 
         if (options?.defaultViewId) lookupOptions.defaultViewId = options.defaultViewId;
 
-        return await Util.Xrm.Utility.lookupObjects(lookupOptions) as LookupResult[];
+        return (await Util.Xrm.Utility.lookupObjects(lookupOptions)) as LookupResult[];
     }
 }
 
-/** Generic lookup service (OData) */
+// ---- Generic lookup OData service ----
 export class LookupService {
-    /** Returns first record id (sanitized) matching a raw OData filter, or null. */
     static async getFirstIdByFilter(
         entityLogical: string,
         idAttr: string,
-        odataFilter: string // e.g. "(statuscode eq 1)"
+        odataFilter: string
     ): Promise<string | null> {
         const options = `?$select=${idAttr}&$filter=${odataFilter}`;
         const res = await ApiClient.retrieveMultiple(entityLogical, options);
@@ -162,7 +219,6 @@ export class LookupService {
         return id ? Util.sanitizeGuid(id) : null;
     }
 
-    /** Convenience: equality on a single column */
     static async getIdByEquality(
         entityLogical: string,
         idAttr: string,

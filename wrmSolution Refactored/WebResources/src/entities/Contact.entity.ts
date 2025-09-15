@@ -3,5 +3,5 @@ export const CONTACT = {
     fields: {
         pk: "contactid",
         nev_businessunitid: "nev_businessunitid",
-    }
+    },
 } as const;

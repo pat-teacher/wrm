@@ -34,6 +34,7 @@
     <Content Include=".eslintrc.json" />
     <Content Include="app.js" />
     <Content Include="Deployment\spkl.json" />
+    <Content Include="MandatoryConfigJson-QuickGuide.md" />
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="tsconfig.json" />
@@ -55,6 +56,7 @@
     <Folder Include="WebResources\src\config\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="WebResources\src\core\condition.evaluator.ts" />
     <TypeScriptCompile Include="WebResources\src\core\crm.core.ts" />
     <TypeScriptCompile Include="WebResources\src\entities\Contact.entity.ts" />
     <TypeScriptCompile Include="WebResources\src\entities\index.ts" />

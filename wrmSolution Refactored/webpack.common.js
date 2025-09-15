@@ -4,6 +4,7 @@ module.exports = {
     entry: {
         entities: './WebResources/src/entities/index.ts',
         crmCore: './WebResources/src/core/crm.core.ts',
+        conditionEvaluator: './WebResources/src/core/condition.evaluator.ts',
         kyc_approval_form: './WebResources/src/form/kyc_approval.form.ts',
         dynamicMandatoryEngine: './WebResources/src/features/dynamicMandatory/dynamicMandatoryEngine.ts',
     },
