@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": [ "es2019", "dom" ],
+    "types": [ "xrm" ],
+    "sourceMap": true, // <- MUSS an, sonst keine TS-Maps
+    "inlineSources": true // <- Quelltext in Map einbetten (praktisch fürs Debugging)
+  },
+  "include": [ "WebResources/src/**/*" ]
+}

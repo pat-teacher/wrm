@@ -1,0 +1,31 @@
+// webpack.config.js
+const path = require('path');
+
+module.exports = {
+    entry: {
+        index: './WebResources/src/entities/index.ts',
+        OriginType: './WebResources/src/entities/OriginType.entity.ts',
+        Portfolio: './WebResources/src/entities/Portfolio.entity.ts',
+        PortfolioRelationship: './WebResources/src/entities/PortfolioRelationship.entity.ts',
+        PortfolioRelationshipType: './WebResources/src/entities/PortfolioRelationshipType.entity.ts',
+        RiskSummaryAndApproval: './WebResources/src/entities/RiskSummaryAndApproval.entity.ts',
+        kyc_approval_form: './WebResources/src/form/kyc_approval.form.ts'
+    },
+    output: {
+        path: path.resolve(__dirname, 'WebResources/dist'),
+        filename: '[name].js',
+        library: ['WRM', '[name]'],
+        libraryTarget: 'window',
+        clean: true,
+        // Optional: schönere Pfade im DevTools "Sources"-Baum
+        devtoolModuleFilenameTemplate: info =>
+            path.resolve(info.absoluteResourcePath).replace(/\\/g, '/')
+    },
+    // Für echtes Debugging:
+    mode: 'development',        // kein Minify, bessere Stacktraces
+    devtool: 'inline-source-map',// Maps inline in die JS-Datei
+    module: {
+        rules: [{ test: /\.ts$/, use: 'ts-loader', exclude: /node_modules/ }]
+    },
+    resolve: { extensions: ['.ts', '.js'] }
+};

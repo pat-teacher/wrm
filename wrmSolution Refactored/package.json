@@ -1,0 +1,27 @@
+{
+  "name": "wrm-solution",
+  "version": "0.0.0",
+  "description": "wrmSolution",
+  "main": "app.js",
+  "author": {
+    "name": ""
+  },
+  "scripts": {
+    "build": "webpack --config webpack.prod.js",
+    "build:dev": "webpack --config webpack.dev.js",
+    "watch": "webpack --config webpack.dev.js --watch"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "typescript": "^5",
+    "webpack": "^5",
+    "webpack-cli": "^5",
+    "ts-loader": "^9",
+    "@types/xrm": "^9",
+    "webpack-merge": "^6"
+  },
+  "eslintConfig": {
+  }
+}
