@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "module": "ESNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": [ "es2015", "dom" ],
+    "types": [ "xrm" ],
+    "sourceMap": true, // <- MUSS an, sonst keine TS-Maps
+    "inlineSources": true // <- Quelltext in Map einbetten (praktisch fürs Debugging)
+  },
+  "include": [ "WebResources/src/**/*" ]
+}
