@@ -426,3 +426,18 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# VS lokale Caches explizit ignorieren
+.vs/
+**/.vs/
+**/.vs/**/v[0-9][0-9]/
+**/.vs/**/FileContentIndex/
+**/[Ff]ile[Cc]ontent[Ii]ndex/
+**/*.vsidx
+
+# GitHub Copilot Indizes in VS
+**/[Cc]opilot[Ii]ndices/
+**/.vs/**/[Cc]opilot[Ii]ndices/
+
+# SUO überall
+*.suo
