@@ -23,6 +23,16 @@ import {
  */
 export async function onLoad(executionContext: any) {
     const fc = executionContext.getFormContext?.() ?? executionContext;
+
+    if (isRecordInactive(fc)) {
+        fc.ui?.setFormNotification?.(
+            "This record is inactive. Actions are not available.",
+            "WARNING",
+            "record-inactive"
+        );
+        return; // stop further init work
+    }
+
     try {
         await toggleAccountsSubgridForOriginType(fc);
         // OnChange-Handler für OriginTypeId hinzufügen
@@ -40,6 +50,11 @@ export async function onLoad(executionContext: any) {
 export async function addAllowedAccounts(primaryControl: any) {
     const fc = primaryControl;
     const xrm = (window as any).Xrm ?? Util.Xrm;
+
+    if (isRecordInactive(fc)) {
+        await xrm.Navigation.openAlertDialog({ text: "Record is inactive." });
+        return;
+    }
 
     const currentId = FormHelper.getCurrentId(fc);
     if (!currentId) {
@@ -83,6 +98,13 @@ export async function addAllowedAccounts(primaryControl: any) {
 /* ---------------------------------- */
 /*           helper functions         */
 /* ---------------------------------- */
+
+// Returns true if the current record is inactive (statecode = 1)
+function isRecordInactive(fc: any): boolean {
+    const statecodeAttribute = fc.getAttribute?.(RISKSUMMARYANDAPPROVAL.fields.statecode);
+    const val = statecodeAttribute?.getValue?.();        // optionset number (0=Active, 1=Inactive)
+    return val === 1 || val === "1";            // be defensive about type
+}
 
 async function toggleAccountsSubgridForOriginType(fc: any): Promise<void> {
     const accountOpeningId = await getAccountOpeningId();

@@ -5,7 +5,8 @@ export const RISKSUMMARYANDAPPROVAL = {
         pk: "wrmr_risksummaryandapprovalid",
         contactId: "wrmr_contactid",
         companyId: "wrmr_companyid",
-        ambcustOriginTypeId: "ambcust_origintypeid"
+        ambcustOriginTypeId: "ambcust_origintypeid",
+        statecode: "statecode"
     },
     controls: {
         subgridAccounts: "wrm_subgrid_accounts",
