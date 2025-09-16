@@ -1,7 +1,7 @@
 {
   "version": 1,
   "entities": {
-    "account": {
+    "wrmb_portfolio": {
       "default": [ "name", "telephone1", "emailaddress1" ],
       "rules": [
         {
@@ -87,7 +87,7 @@
         }
       ]
     },
-    "company": {
+    "account": {
       "default": [ "wrm_companyname", "wrm_registrationno" ],
       "rules": [
         {
