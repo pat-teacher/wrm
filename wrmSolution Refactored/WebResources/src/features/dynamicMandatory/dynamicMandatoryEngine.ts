@@ -3,6 +3,8 @@ import { ApiClient, Util, VisibilityHelper } from "../../core/crm.core";
 import { evaluateCondition, readAttributeValue, isLookupArray } from "../../core/condition.evaluator";
 import { BUSINESSUNITLOCATION, parseBusinessUnitConfig, listConditionFields } from "../../entities/MandatoryConfig.entity";
 import { CONTACT } from "../../entities/Contact.entity";
+import { ACCOUNT } from "../../entities/Account.entity";
+import { PORTFOLIO } from "../../entities/Portfolio.entity";
 
 
 const businessUnitConfigCache = new Map<string, BusinessUnitConfig | null>();
@@ -21,7 +23,8 @@ export async function applyDynamicMandatoryRules(executionContext: Xrm.Events.Ev
 }
 
 async function loadBusinessUnitConfig(formContext: Xrm.FormContext): Promise<BusinessUnitConfig | null> {
-    const attr = formContext.getAttribute(CONTACT.fields.nev_businessunitid);
+    const businessUnitAttribute = getBusinessUnitAttributeForForm(formContext);
+    const attr = businessUnitAttribute ? formContext.getAttribute(businessUnitAttribute) : undefined;
     const val = attr?.getValue?.();
     const locationId = isLookupArray(val) ? Util.sanitizeGuid(val[0].id) : null;
 
@@ -102,5 +105,24 @@ function autoWireOnChange(formContext: Xrm.FormContext, config: BusinessUnitConf
         } catch {
             // ignore
         }
+    }
+}
+
+// Resolves the correct business-unit/location lookup attribute based on the current form's entity
+function getBusinessUnitAttributeForForm(formContext: Xrm.FormContext): string | undefined {
+    try {
+        const entityName = formContext?.data?.entity?.getEntityName?.();
+        switch (entityName) {
+            case CONTACT.entity:
+                return CONTACT.fields.nev_businessunitid; // contact
+            case ACCOUNT.entity:
+                return ACCOUNT.fields.nev_businessunit; // account (nev_businessunit)
+            case PORTFOLIO.entity:
+                return PORTFOLIO.fields.ambcust_locationid; // portfolio
+            default:
+                return undefined;
+        }
+    } catch {
+        return undefined;
     }
 }
