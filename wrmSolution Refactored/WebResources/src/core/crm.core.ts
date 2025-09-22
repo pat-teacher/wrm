@@ -1,3 +1,34 @@
+// ==== FormType Constants ====
+export const FORM_TYPE = {
+    Undefined: 0,
+    Create: 1,
+    Update: 2,
+    ReadOnly: 3,
+    Disabled: 4,
+    QuickCreate: 5,
+    BulkEdit: 6,
+} as const;
+
+export type FormType = typeof FORM_TYPE[keyof typeof FORM_TYPE];
+
+export const FormTypeHelper = {
+    get(fc: any): FormType | 0 {
+        return fc?.ui?.getFormType?.() ?? FORM_TYPE.Undefined;
+    },
+    isCreateLike(type: FormType) {
+        return type === FORM_TYPE.Create || type === FORM_TYPE.QuickCreate;
+    },
+    isEditable(type: FormType) {
+        return type === FORM_TYPE.Create || type === FORM_TYPE.Update || type === FORM_TYPE.QuickCreate;
+    }
+};
+
+export interface OwnerRef {
+    id: string;
+    entityType: "systemuser" | "team";
+    name?: string | null;
+}
+
 // ---- Types shared across engine & entities ----
 export type Operator = "eq" | "ne" | "in" | "isnull" | "isnotnull" | "notnull"; // alias
 
@@ -227,5 +258,100 @@ export class LookupService {
     ): Promise<string | null> {
         const lit = typeof value === "string" ? `'${value.replace(/'/g, "''")}'` : String(value);
         return this.getFirstIdByFilter(entityLogical, idAttr, `(${attr} eq ${lit})`);
+    }
+}
+
+export class FormWait {
+    static waitForLookupValue(fc: any, attributeName: string, timeoutMs = 6000): Promise<Xrm.LookupValue | null> {
+        return new Promise((resolve) => {
+            const attr = fc?.getAttribute?.(attributeName) as Xrm.Attributes.LookupAttribute | undefined;
+            if (!attr) return resolve(null);
+
+            const now = attr.getValue?.()?.[0];
+            if (now?.id) return resolve(now);
+
+            let done = false;
+            const cleanup = () => { try { attr.removeOnChange(onChange); } catch { } };
+            const onChange = () => {
+                if (done) return;
+                const v = attr.getValue?.()?.[0];
+                if (v?.id) { done = true; cleanup(); resolve(v); }
+            };
+
+            try { attr.addOnChange(onChange); } catch { }
+            setTimeout(onChange, 0);
+
+            setTimeout(() => { if (!done) { done = true; cleanup(); resolve(null); } }, timeoutMs);
+        });
+    }
+}
+
+export class OwnerHelper {
+    static getOwnerAttribute(fc: any, ownerAttrName: string): Xrm.Attributes.LookupAttribute | undefined {
+        return (fc?.getAttribute?.(ownerAttrName) ?? null) as any;
+    }
+
+    static getCurrentOwner(fc: any, ownerAttrName: string): OwnerRef | null {
+        const v = this.getOwnerAttribute(fc, ownerAttrName)?.getValue?.()?.[0];
+        if (!v?.id || !v.entityType) return null;
+        return { id: Util.sanitizeGuid(v.id), entityType: v.entityType as any, name: v.name ?? null };
+    }
+
+    static setOwner(fc: any, ownerAttrName: string, owner: OwnerRef): void {
+        const attr = this.getOwnerAttribute(fc, ownerAttrName);
+        if (!attr) return;
+        attr.setValue([{
+            id: Util.sanitizeGuid(owner.id),
+            entityType: owner.entityType,
+            name: owner.name ?? undefined
+        } as any]);
+    }
+
+    static isSameOwner(a?: OwnerRef | null, b?: OwnerRef | null): boolean {
+        if (!a || !b) return false;
+        return a.entityType === b.entityType && Util.sanitizeGuid(a.id) === Util.sanitizeGuid(b.id);
+    }
+}
+
+/** Generic service: Load owner (User or Team) for any record */
+export class OwnerService {
+    static async getOwnerRef(
+        entityLogical: string,
+        recordId: string,
+        ownerAttrName = "ownerid"
+    ): Promise<OwnerRef | null> {
+        const id = Util.sanitizeGuid(recordId);
+        if (!id) return null;
+
+        // For polymorphic owner lookups, expand dedicated nav props to avoid property-not-found errors
+        const expand = `?$select=${ownerAttrName}&$expand=owninguser($select=systemuserid,fullname),owningteam($select=teamid,name)`;
+        const rec = await ApiClient.retrieveRecord(entityLogical, id, expand);
+
+        const user = rec?.["owninguser"];
+        if (user?.systemuserid) {
+            return {
+                id: Util.sanitizeGuid(user.systemuserid),
+                entityType: "systemuser",
+                name: user.fullname ?? null,
+            };
+        }
+        const team = rec?.["owningteam"];
+        if (team?.teamid) {
+            return {
+                id: Util.sanitizeGuid(team.teamid),
+                entityType: "team",
+                name: team.name ?? null,
+            };
+        }
+        return null;
+    }
+}
+
+export class ContactOwnerService {
+    static async getOwnerRef(
+        contactEntity: { entity: string; fields: { ownerid: string } },
+        contactId: string
+    ): Promise<OwnerRef | null> {
+        return OwnerService.getOwnerRef(contactEntity.entity, contactId, contactEntity.fields.ownerid);
     }
 }

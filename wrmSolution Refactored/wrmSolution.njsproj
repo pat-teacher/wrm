@@ -58,6 +58,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="WebResources\src\core\condition.evaluator.ts" />
     <TypeScriptCompile Include="WebResources\src\core\crm.core.ts" />
+    <TypeScriptCompile Include="WebResources\src\entities\SourceOfFundEvent.entity.ts" />
     <TypeScriptCompile Include="WebResources\src\entities\Account.entity.ts" />
     <TypeScriptCompile Include="WebResources\src\entities\Contact.entity.ts" />
     <TypeScriptCompile Include="WebResources\src\entities\index.ts" />
@@ -67,8 +68,11 @@
     <TypeScriptCompile Include="WebResources\src\entities\PortfolioRelationship.entity.ts" />
     <TypeScriptCompile Include="WebResources\src\entities\PortfolioRelationshipType.entity.ts" />
     <TypeScriptCompile Include="WebResources\src\entities\RiskSummaryAndApproval.entity.ts" />
+    <TypeScriptCompile Include="WebResources\src\entities\Systemuser.entity.ts" />
+    <TypeScriptCompile Include="WebResources\src\entities\Team.entity.ts" />
     <TypeScriptCompile Include="WebResources\src\features\dynamicMandatory\dynamicMandatoryEngine.ts" />
     <TypeScriptCompile Include="WebResources\src\form\kyc_approval.form.ts" />
+    <TypeScriptCompile Include="WebResources\src\form\sourceoffundevent.form.ts" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
 </Project>
