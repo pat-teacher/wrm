@@ -170,6 +170,18 @@ export class VisibilityHelper {
         }
     }
 
+    /** Enables or disables a control */
+    static setDisabled(fc: any, controlName: string, disabled: boolean) {
+        const ctrl = fc?.getControl?.(controlName);
+        if (ctrl?.setDisabled) {
+            try {
+                ctrl.setDisabled(disabled);
+            } catch {
+                /* ignore */
+            }
+        }
+    }
+
     /** Sets required level on an attribute/control */
     static setRequired(fc: any, controlName: string, isRequired: boolean) {
         const attr = fc?.getAttribute?.(controlName);
