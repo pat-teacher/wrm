@@ -1,4 +1,4 @@
-export const ACCOUNT = {
+export const COMPANY = {
     entity: "account",
     fields: {
         pk: "accountid",

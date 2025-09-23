@@ -2,7 +2,7 @@
 
 import {
     RISKSUMMARYANDAPPROVAL,
-    PORTFOLIO,
+    ACCOUNT,
     PORTFOLIORELATIONSHIP,
     PORTFOLIORELATIONSHIPTYPE,
     ORIGINTYPE,
@@ -175,10 +175,10 @@ async function fetchCandidatePortfolioIds(contactId?: string, companyId?: string
 }
 
 async function getAlreadyLinkedPortfolioIds(mainId: string): Promise<Set<string>> {
-    const expand = `?$expand=${RISKSUMMARYANDAPPROVAL.relationships.portfolios.nav}($select=${PORTFOLIO.fields.pk})`;
+    const expand = `?$expand=${RISKSUMMARYANDAPPROVAL.relationships.portfolios.nav}($select=${ACCOUNT.fields.pk})`;
     const rec = await ApiClient.retrieveRecord(RISKSUMMARYANDAPPROVAL.entity, mainId, expand);
     const list = (rec?.[RISKSUMMARYANDAPPROVAL.relationships.portfolios.nav] || []) as Array<any>;
-    return new Set<string>(list.map(row => Util.sanitizeGuid(row[PORTFOLIO.fields.pk])));
+    return new Set<string>(list.map(row => Util.sanitizeGuid(row[ACCOUNT.fields.pk])));
 }
 
 async function openCandidatePicker(fc: any, candidateIds: string[]): Promise<string[]> {
@@ -189,8 +189,8 @@ async function openCandidatePicker(fc: any, candidateIds: string[]): Promise<str
     );
 
     const selection = await LookupDialogHelper.openWithIdList(
-        PORTFOLIO.entity,
-        PORTFOLIO.fields.pk,
+        ACCOUNT.entity,
+        ACCOUNT.fields.pk,
         candidateIds,
         { allowMultiSelect: true, disableMru: true }
     );
@@ -207,7 +207,7 @@ async function associateSelectedPortfolios(mainId: string, selectedIds: string[]
         RISKSUMMARYANDAPPROVAL.entity,
         mainId,
         RISKSUMMARYANDAPPROVAL.relationships.portfolios.schema,
-        PORTFOLIO.entity,
+        ACCOUNT.entity,
         selectedIds
     );
 }

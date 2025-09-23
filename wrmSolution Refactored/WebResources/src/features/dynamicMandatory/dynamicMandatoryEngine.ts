@@ -3,8 +3,8 @@ import { ApiClient, Util, VisibilityHelper } from "../../core/crm.core";
 import { evaluateCondition, readAttributeValue, isLookupArray } from "../../core/condition.evaluator";
 import { BUSINESSUNITLOCATION, parseBusinessUnitConfig, listConditionFields } from "../../entities/MandatoryConfig.entity";
 import { CONTACT } from "../../entities/Contact.entity";
-import { ACCOUNT } from "../../entities/Account.entity";
-import { PORTFOLIO } from "../../entities/Portfolio.entity";
+import { COMPANY } from "../../entities/Account.entity";
+import { ACCOUNT } from "../../entities/Portfolio.entity";
 
 
 const businessUnitConfigCache = new Map<string, BusinessUnitConfig | null>();
@@ -115,10 +115,10 @@ function getBusinessUnitAttributeForForm(formContext: Xrm.FormContext): string |
         switch (entityName) {
             case CONTACT.entity:
                 return CONTACT.fields.nev_businessunitid; // contact
+            case COMPANY.entity:
+                return COMPANY.fields.nev_businessunit; // account (nev_businessunit)
             case ACCOUNT.entity:
-                return ACCOUNT.fields.nev_businessunit; // account (nev_businessunit)
-            case PORTFOLIO.entity:
-                return PORTFOLIO.fields.ambcust_locationid; // portfolio
+                return ACCOUNT.fields.ambcust_locationid; // portfolio
             default:
                 return undefined;
         }

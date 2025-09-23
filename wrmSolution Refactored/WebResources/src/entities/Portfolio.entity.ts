@@ -1,5 +1,5 @@
 // Portfolio.entity.ts
-export const PORTFOLIO = {
+export const ACCOUNT = {
     entity: "wrmb_portfolio",
     fields: {
         pk: "wrmb_portfolioid",
