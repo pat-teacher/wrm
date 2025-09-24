@@ -4,7 +4,7 @@ import { evaluateCondition, readAttributeValue, isLookupArray } from "../../core
 import { BUSINESSUNITLOCATION, parseBusinessUnitConfig, listConditionFields } from "../../entities/MandatoryConfig.entity";
 import { CONTACT } from "../../entities/Contact.entity";
 import { COMPANY } from "../../entities/Company.entity";
-import { ACCOUNT } from "../../entities/Portfolio.entity";
+import { ACCOUNT } from "../../entities/Account.entity";
 
 
 const businessUnitConfigCache = new Map<string, BusinessUnitConfig | null>();
