@@ -359,15 +359,6 @@ export class OwnerService {
     }
 }
 
-export class ContactOwnerService {
-    static async getOwnerRef(
-        contactEntity: { entity: string; fields: { ownerid: string } },
-        contactId: string
-    ): Promise<OwnerRef | null> {
-        return OwnerService.getOwnerRef(contactEntity.entity, contactId, contactEntity.fields.ownerid);
-    }
-}
-
 /** Security-related helpers */
 export class SecurityService {
         /** Returns current user id from Xrm context */
