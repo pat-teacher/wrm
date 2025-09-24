@@ -3,7 +3,7 @@ import { ApiClient, Util, VisibilityHelper } from "../../core/crm.core";
 import { evaluateCondition, readAttributeValue, isLookupArray } from "../../core/condition.evaluator";
 import { BUSINESSUNITLOCATION, parseBusinessUnitConfig, listConditionFields } from "../../entities/MandatoryConfig.entity";
 import { CONTACT } from "../../entities/Contact.entity";
-import { COMPANY } from "../../entities/Account.entity";
+import { COMPANY } from "../../entities/Company.entity";
 import { ACCOUNT } from "../../entities/Portfolio.entity";
 
 
