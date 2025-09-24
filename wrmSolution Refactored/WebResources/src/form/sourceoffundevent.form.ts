@@ -15,16 +15,20 @@ export async function onLoad(executionContext: Xrm.Events.EventContext) {
 async function applyComplianceOfficerAccess(fc: Xrm.FormContext): Promise<void> {
     try {
         const isComplianceOfficer = await SecurityService.hasCurrentUserRole(SECURITY_ROLES.WRM_COMPLIANCE_OFFICER);
+        // Compliance Officer: always enabled (field-level security governs actual permission)
+        if (isComplianceOfficer) {
+            VisibilityHelper.setDisabled(fc, SOURCEOFFUNDEVENT.fields.compliancecomment, false);
+            VisibilityHelper.setDisabled(fc, SOURCEOFFUNDEVENT.fields.compliancestatus, false);
+            return;
+        }
 
-        // Always start disabled; logic will selectively re-enable
+        // Non Officer: default disabled
         VisibilityHelper.setDisabled(fc, SOURCEOFFUNDEVENT.fields.compliancecomment, true);
         VisibilityHelper.setDisabled(fc, SOURCEOFFUNDEVENT.fields.compliancestatus, true);
 
-        // Retrieve current status value (OptionSet)
         const statusAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.compliancestatus) as Xrm.Attributes.OptionSetAttribute | undefined;
         const statusVal = statusAttr?.getValue?.();
-
-        if (!isComplianceOfficer && statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.PENDING) {
+        if (statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.PENDING) {
             VisibilityHelper.setDisabled(fc, SOURCEOFFUNDEVENT.fields.compliancecomment, false);
             VisibilityHelper.setDisabled(fc, SOURCEOFFUNDEVENT.fields.compliancestatus, false);
         }
