@@ -206,6 +206,27 @@ export class VisibilityHelper {
             return !!current && Util.sanitizeGuid(current) === Util.sanitizeGuid(targetId);
         });
     }
+
+    /** Type guard: control supports setDisabled */
+    private static isDisableable(control: Xrm.Controls.Control): control is Xrm.Controls.StandardControl {
+        return (control as any)?.setDisabled instanceof Function;
+    }
+
+    /** Disable or enable all disableable controls inside a tab section */
+    static setDisabledAllControlsInSection(fc: Xrm.FormContext, tabName: string, sectionName: string, disabled: boolean = true): void {
+        const tab = fc.ui?.tabs?.get?.(tabName);
+        if (!tab) return;
+        const section = tab.sections?.get?.(sectionName);
+        if (!section) return;
+        try {
+            section.controls.forEach((control: any) => {
+                if (VisibilityHelper.isDisableable(control)) {
+                    try { control.setDisabled(disabled); } catch { /* ignore */ }
+                }
+                // Optional: Spezialfälle (Subgrid etc.) könnten hier behandelt werden
+            });
+        } catch { /* ignore */ }
+    }
 }
 
 // ---- Lookup dialog helper ----

@@ -18,20 +18,23 @@ async function applyComplianceOfficerAccess(fc: Xrm.FormContext): Promise<void> 
         const isComplianceOfficer = await SecurityService.hasCurrentUserRole(SECURITY_ROLES.WRM_COMPLIANCE_OFFICER);
         // Compliance Officer: always enabled (field-level security governs actual permission)
         if (isComplianceOfficer) {
-            VisibilityHelper.setDisabled(fc, SOURCEOFFUNDEVENT.fields.compliancecomment, false);
-            VisibilityHelper.setDisabled(fc, SOURCEOFFUNDEVENT.fields.compliancestatus, false);
+            VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, false);
+            VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, false);
+            VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, false);
             return;
         }
 
         // Non Officer: default disabled
-        VisibilityHelper.setDisabled(fc, SOURCEOFFUNDEVENT.fields.compliancecomment, true);
-        VisibilityHelper.setDisabled(fc, SOURCEOFFUNDEVENT.fields.compliancestatus, true);
+        VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, true);
+        VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, true);
+        VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, true);
 
         const statusAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.compliancestatus) as Xrm.Attributes.OptionSetAttribute | undefined;
         const statusVal = statusAttr?.getValue?.();
-        if (statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.PENDING) {
-            VisibilityHelper.setDisabled(fc, SOURCEOFFUNDEVENT.fields.compliancecomment, false);
-            VisibilityHelper.setDisabled(fc, SOURCEOFFUNDEVENT.fields.compliancestatus, false);
+        if (statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.PENDING || statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.REJECTED) {
+            VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, false);
+            VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, false);
+            VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, false);
         }
     } catch { /* ignore */ }
 }
