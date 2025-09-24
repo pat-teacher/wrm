@@ -367,3 +367,52 @@ export class ContactOwnerService {
         return OwnerService.getOwnerRef(contactEntity.entity, contactId, contactEntity.fields.ownerid);
     }
 }
+
+/** Security-related helpers */
+export class SecurityService {
+        /** Returns current user id from Xrm context */
+        static getCurrentUserId(): string | null {
+                try {
+                        const id = Util.Xrm?.Utility?.getGlobalContext?.()?.userSettings?.userId as string | undefined;
+                        return id ? Util.sanitizeGuid(id) : null;
+                } catch {
+                        return null;
+                }
+        }
+
+        /** Returns role names of the current user */
+        static async getCurrentUserRoles(): Promise<{ id: string; name: string }[]> {
+                const userId = this.getCurrentUserId();
+                if (!userId) return [];
+
+                // FetchXML over systemuserroles (N:N) to role
+                const fetchXml = `
+                <fetch version="1.0" distinct="true">
+                    <entity name="role">
+                        <attribute name="roleid" />
+                        <attribute name="name" />
+                        <link-entity name="systemuserroles" from="roleid" to="roleid" intersect="true">
+                            <link-entity name="systemuser" from="systemuserid" to="systemuserid" alias="u">
+                                <filter>
+                                    <condition attribute="systemuserid" operator="eq" value="${userId}" />
+                                </filter>
+                            </link-entity>
+                        </link-entity>
+                    </entity>
+                </fetch>`.trim();
+
+            const res = await ApiClient.fetchXml("role", fetchXml);
+                return (res.entities || []).map((e) => ({
+                        id: Util.sanitizeGuid(e["roleid"] ?? e["_roleid_value"]),
+                        name: e["name"] as string,
+                })).filter(r => !!r.id && !!r.name);
+        }
+
+        /** Checks if current user has one of the provided role names (case-insensitive) */
+        static async hasCurrentUserRole(...roleNames: string[]): Promise<boolean> {
+                const wanted = new Set(roleNames.map(n => n.trim().toLowerCase()).filter(Boolean));
+                if (wanted.size === 0) return false;
+                const roles = await this.getCurrentUserRoles();
+                return roles.some(r => wanted.has(r.name.toLowerCase()));
+        }
+}
