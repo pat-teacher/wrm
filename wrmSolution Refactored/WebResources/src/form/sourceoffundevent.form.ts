@@ -31,7 +31,7 @@ async function applyComplianceOfficerAccess(fc: Xrm.FormContext): Promise<void> 
 
         const statusAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.compliancestatus) as Xrm.Attributes.OptionSetAttribute | undefined;
         const statusVal = statusAttr?.getValue?.();
-        if (statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.PENDING || statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.REJECTED) {
+        if (statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.PENDING || statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.REJECTED || statusVal === null) {
             VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, false);
             VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, false);
             VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, false);
