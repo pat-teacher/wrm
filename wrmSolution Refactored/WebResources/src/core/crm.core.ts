@@ -209,7 +209,7 @@ export class VisibilityHelper {
 
     /** Type guard: control supports setDisabled */
     private static isDisableable(control: Xrm.Controls.Control): control is Xrm.Controls.StandardControl {
-        return (control as any)?.setDisabled instanceof Function;
+        return "setDisabled" in control && typeof (control as Xrm.Controls.StandardControl).setDisabled === "function";
     }
 
     /** Disable or enable all disableable controls inside a tab section */
