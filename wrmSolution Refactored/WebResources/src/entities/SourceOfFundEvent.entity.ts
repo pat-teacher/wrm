@@ -3,6 +3,7 @@ export const SOURCEOFFUNDEVENT = {
     fields: {
         pk: "mhwrmb_sourceoffundeventid",
         contactid: "mhwrmb_contactid",
+        accountid: "mhwrmb_accountid",
         ownerid: "ownerid",
         compliancecomment: "mhwrmb_compliancecomment",
         compliancestatus: "mhwrmb_compliancestatus",
