@@ -1,6 +1,7 @@
 import { CONTACT } from "./../entities/Contact.entity";
+import { COMPANY } from "../entities/Company.entity";
 import { SOURCEOFFUNDEVENT } from "./../entities/SourceOfFundEvent.entity";
-import { FormWait, OwnerHelper, OwnerRef, ContactOwnerService, FormTypeHelper, SecurityService, VisibilityHelper } from "./../core/crm.core";
+import { FormWait, OwnerHelper, OwnerRef, FormTypeHelper, SecurityService, VisibilityHelper, OwnerService } from "./../core/crm.core";
 import { SECURITY_ROLES } from "../core/SecurityRoles";
 
 let _desiredOwner: OwnerRef | null = null;
@@ -8,7 +9,7 @@ let _desiredOwner: OwnerRef | null = null;
 export async function onLoad(executionContext: Xrm.Events.EventContext) {
     const fc = executionContext.getFormContext();
     await applyComplianceOfficerAccess(fc);
-    await ensureOwnerFromContactOnCreate(fc);
+    await ensureOwnerFromContactOrAccountOnCreate(fc);
 }
 
 /** Enables compliance fields for users with WRM Compliance Officer role */
@@ -35,28 +36,41 @@ async function applyComplianceOfficerAccess(fc: Xrm.FormContext): Promise<void> 
     } catch { /* ignore */ }
 }
 
-/** On create-like forms, set owner to the contact's owner */
-async function ensureOwnerFromContactOnCreate(fc: Xrm.FormContext): Promise<void> {
+/**
+ * On create-like forms, set owner to the contact's owner; if not available, fallback to the account's owner.
+ */
+async function ensureOwnerFromContactOrAccountOnCreate(fc: Xrm.FormContext): Promise<void> {
     const formType = FormTypeHelper.get(fc);
     if (!FormTypeHelper.isCreateLike(formType)) return; // only Create & QuickCreate
 
     const contactAttrName = SOURCEOFFUNDEVENT.fields.contactid;
+    const accountAttrName = SOURCEOFFUNDEVENT.fields.accountid;
     const ownerAttrName = SOURCEOFFUNDEVENT.fields.ownerid;
 
     if (!OwnerHelper.getOwnerAttribute(fc, ownerAttrName)) return;
 
-    const contactLookup = await FormWait.waitForLookupValue(fc, contactAttrName, 6000);
-    if (!contactLookup?.id) return;
+    // Parallel wait for both lookups (contact prioritized). Account timeout shorter.
+    const [contactLookupRaw, accountLookupRaw] = await Promise.all([
+        FormWait.waitForLookupValue(fc, contactAttrName, 4000),
+        FormWait.waitForLookupValue(fc, accountAttrName, 2500)
+    ]);
+    const contactLookup = contactLookupRaw || undefined;
+    const accountLookup = accountLookupRaw || undefined;
 
-    const contactOwner = await ContactOwnerService.getOwnerRef(CONTACT, contactLookup.id);
-    if (!contactOwner) return;
+    let resolvedOwner: OwnerRef | null = null;
+    if (contactLookup?.id) {
+        resolvedOwner = await OwnerService.getOwnerRef(CONTACT.entity, contactLookup.id, CONTACT.fields.ownerid);
+    }
+    if (!resolvedOwner && accountLookup?.id) {
+        resolvedOwner = await OwnerService.getOwnerRef(COMPANY.entity, accountLookup.id, COMPANY.fields.ownerid);
+    }
 
-    _desiredOwner = contactOwner;
+    if (!resolvedOwner) return;
 
+    _desiredOwner = resolvedOwner;
     const currentOwner = OwnerHelper.getCurrentOwner(fc, ownerAttrName);
-    if (!OwnerHelper.isSameOwner(currentOwner, contactOwner)) {
-        OwnerHelper.setOwner(fc, ownerAttrName, contactOwner);
-        // optional: await fc.data.save();
+    if (!OwnerHelper.isSameOwner(currentOwner, resolvedOwner)) {
+        OwnerHelper.setOwner(fc, ownerAttrName, resolvedOwner);
     }
 }
 
