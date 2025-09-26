@@ -15,8 +15,9 @@ export async function onLoad(executionContext: Xrm.Events.EventContext) {
     try {
         const contactAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.contactid) as Xrm.Attributes.LookupAttribute | undefined;
         const accountAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.accountid) as Xrm.Attributes.LookupAttribute | undefined;
-        contactAttr?.addOnChange(() => applyMutualReadOnlyContactAccount(fc));
-        accountAttr?.addOnChange(() => applyMutualReadOnlyContactAccount(fc));
+        const handler = () => { applyMutualReadOnlyContactAccount(fc); void ensureOwnerFromContactOrAccountOnCreate(fc); };
+        contactAttr?.addOnChange(handler);
+        accountAttr?.addOnChange(handler);
     } catch { /* ignore */ }
 }
 
@@ -51,9 +52,7 @@ async function applyComplianceOfficerAccess(fc: Xrm.FormContext): Promise<void> 
  * On create-like forms, set owner to the contact's owner; if not available, fallback to the account's owner.
  */
 async function ensureOwnerFromContactOrAccountOnCreate(fc: Xrm.FormContext): Promise<void> {
-    const formType = FormTypeHelper.get(fc);
-    if (!FormTypeHelper.isCreateLike(formType)) return; // only Create & QuickCreate
-
+    
     const contactAttrName = SOURCEOFFUNDEVENT.fields.contactid;
     const accountAttrName = SOURCEOFFUNDEVENT.fields.accountid;
     const ownerAttrName = SOURCEOFFUNDEVENT.fields.ownerid;
