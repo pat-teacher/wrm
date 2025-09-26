@@ -10,6 +10,14 @@ export async function onLoad(executionContext: Xrm.Events.EventContext) {
     const fc = executionContext.getFormContext();
     await applyComplianceOfficerAccess(fc);
     await ensureOwnerFromContactOrAccountOnCreate(fc);
+    // Apply mutual read-only logic between contact and account and wire change handlers
+    applyMutualReadOnlyContactAccount(fc);
+    try {
+        const contactAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.contactid) as Xrm.Attributes.LookupAttribute | undefined;
+        const accountAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.accountid) as Xrm.Attributes.LookupAttribute | undefined;
+        contactAttr?.addOnChange(() => applyMutualReadOnlyContactAccount(fc));
+        accountAttr?.addOnChange(() => applyMutualReadOnlyContactAccount(fc));
+    } catch { /* ignore */ }
 }
 
 /** Enables compliance fields for users with WRM Compliance Officer role */
@@ -86,4 +94,37 @@ export function onSave(executionContext: Xrm.Events.SaveEventContext) {
     if (!OwnerHelper.isSameOwner(currentOwner, _desiredOwner)) {
         OwnerHelper.setOwner(fc, ownerAttrName, _desiredOwner);
     }
+}
+
+/**
+ * Mutual read-only between contact and account:
+ * - If contact has value and account is empty, account becomes read-only
+ * - If account has value and contact is empty, contact becomes read-only
+ * - Otherwise (both empty or both set), both are editable
+ */
+function applyMutualReadOnlyContactAccount(fc: Xrm.FormContext): void {
+    const contactField = SOURCEOFFUNDEVENT.fields.contactid;
+    const accountField = SOURCEOFFUNDEVENT.fields.accountid;
+
+    const contactAttr = fc.getAttribute?.(contactField) as Xrm.Attributes.LookupAttribute | undefined;
+    const accountAttr = fc.getAttribute?.(accountField) as Xrm.Attributes.LookupAttribute | undefined;
+
+    const hasContact = !!contactAttr?.getValue?.()?.[0]?.id;
+    const hasAccount = !!accountAttr?.getValue?.()?.[0]?.id;
+
+    // exactly one set => disable the other; default: enable both
+    if (hasContact && !hasAccount) {
+        VisibilityHelper.setDisabled(fc, accountField, true);
+        VisibilityHelper.setDisabled(fc, contactField, false);
+        return;
+    }
+
+    if (hasAccount && !hasContact) {
+        VisibilityHelper.setDisabled(fc, contactField, true);
+        VisibilityHelper.setDisabled(fc, accountField, false);
+        return;
+    }
+
+    VisibilityHelper.setDisabled(fc, contactField, false);
+    VisibilityHelper.setDisabled(fc, accountField, false);
 }
