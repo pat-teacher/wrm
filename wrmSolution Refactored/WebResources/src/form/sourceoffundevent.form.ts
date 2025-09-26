@@ -15,6 +15,8 @@ export async function onLoad(executionContext: Xrm.Events.EventContext) {
     try {
         const contactAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.contactid) as Xrm.Attributes.LookupAttribute | undefined;
         const accountAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.accountid) as Xrm.Attributes.LookupAttribute | undefined;
+        const complianceStatusAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.compliancestatus) as Xrm.Attributes.OptionSetAttribute | undefined;
+        complianceStatusAttr?.addOnChange(async () => { await applyComplianceOfficerAccess(fc); });
         const handler = () => { applyMutualReadOnlyContactAccount(fc); void ensureOwnerFromContactOrAccountOnCreate(fc); };
         contactAttr?.addOnChange(handler);
         accountAttr?.addOnChange(handler);
