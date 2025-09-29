@@ -1,13 +1,15 @@
 import { CONTACT } from "./../entities/Contact.entity";
 import { COMPANY } from "../entities/Company.entity";
 import { SOURCEOFFUNDEVENT } from "./../entities/SourceOfFundEvent.entity";
-import { FormWait, OwnerHelper, OwnerRef, FormTypeHelper, SecurityService, VisibilityHelper, OwnerService } from "./../core/crm.core";
+import { FormWait, OwnerHelper, OwnerRef, FormTypeHelper, SecurityService, VisibilityHelper, OwnerService, LookupViewHelper } from "./../core/crm.core";
 import { SECURITY_ROLES } from "../core/SecurityRoles";
 
 let _desiredOwner: OwnerRef | null = null;
 
 export async function onLoad(executionContext: Xrm.Events.EventContext) {
     const fc = executionContext.getFormContext();
+    // Configure owner lookup (also reusable for onChange)
+    configureOwnerLookup(fc);
     await applyComplianceOfficerAccess(fc);
     await ensureOwnerFromContactOrAccountOnCreate(fc);
     // Apply mutual read-only logic between contact and account and wire change handlers
@@ -95,6 +97,17 @@ export function onSave(executionContext: Xrm.Events.SaveEventContext) {
     if (!OwnerHelper.isSameOwner(currentOwner, _desiredOwner)) {
         OwnerHelper.setOwner(fc, ownerAttrName, _desiredOwner);
     }
+}
+
+/**
+ * Configure owner lookup to show only Teams and default to current user's teams.
+ * Can be reused from onLoad and from field onChange handlers if needed.
+ */
+function configureOwnerLookup(fc: Xrm.FormContext): void {
+    try {
+        LookupViewHelper.setEntityTypes(fc, SOURCEOFFUNDEVENT.fields.ownerid, ["team"]);
+        LookupViewHelper.addOwnerTeamViewForCurrentUser(fc, SOURCEOFFUNDEVENT.fields.ownerid);
+    } catch { /* ignore */ }
 }
 
 /**

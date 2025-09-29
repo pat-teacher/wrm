@@ -428,3 +428,64 @@ export class SecurityService {
                 return roles.some(r => wanted.has(r.name.toLowerCase()));
         }
 }
+
+// ---- Lookup control view helpers ----
+export class LookupViewHelper {
+    /** Restrict a lookup control to specific entity types */
+    static setEntityTypes(fc: Xrm.FormContext, controlName: string, entityTypes: string[]): void {
+        try {
+            const ctrl = fc.getControl?.(controlName) as Xrm.Controls.LookupControl | undefined;
+            ctrl?.setEntityTypes?.(entityTypes);
+        } catch { /* ignore */ }
+    }
+
+    /** Add a custom view to a lookup control */
+    static addCustomView(
+        fc: Xrm.FormContext,
+        controlName: string,
+        viewId: string,
+        entityName: string,
+        viewDisplayName: string,
+        fetchXml: string,
+        layoutXml: string,
+        setAsDefault: boolean = true
+    ): void {
+        try {
+            const ctrl = fc.getControl?.(controlName) as Xrm.Controls.LookupControl | undefined;
+            if (!ctrl?.addCustomView) return;
+            ctrl.addCustomView(viewId, entityName, viewDisplayName, fetchXml.trim(), layoutXml.trim(), setAsDefault);
+        } catch { /* ignore */ }
+    }
+
+    /** Adds a custom view for owner lookup to show only teams the current user belongs to. */
+    static addOwnerTeamViewForCurrentUser(fc: Xrm.FormContext, controlName: string = "ownerid"): void {
+        const entityName = "team";
+        const viewDisplayName = "OwnerTeamLookupView";
+        const viewId = "{00000000-0000-0000-0000-000000000001}";
+
+        const fetchXml = `
+            <fetch>
+                <entity name="team">
+                    <attribute name="name" />
+                    <attribute name="businessunitid" />
+                    <link-entity name="nev_ownerteam2systemuser" from="teamid" to="teamid" intersect="true">
+                        <filter>
+                            <condition attribute="systemuserid" operator="eq-userid" />
+                        </filter>
+                    </link-entity>
+                </entity>
+            </fetch>
+        `;
+
+        const layoutXml = `
+            <grid name='resultset' object='1' jump='teamid' select='1' icon='1' preview='1'>
+                <row name='result' id='teamid'>
+                    <cell name='name' width='150' />
+                    <cell name='businessunitid' width='150' />
+                </row>
+            </grid>
+        `;
+
+        LookupViewHelper.addCustomView(fc, controlName, viewId, entityName, viewDisplayName, fetchXml, layoutXml, true);
+    }
+}
