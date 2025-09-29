@@ -110,6 +110,12 @@ function configureOwnerLookup(fc: Xrm.FormContext): void {
     } catch { /* ignore */ }
 }
 
+/** Optional exported onChange handler to re-apply owner lookup configuration */
+export function onOwnerLookupRefresh(executionContext: Xrm.Events.EventContext): void {
+    const fc = executionContext.getFormContext();
+    configureOwnerLookup(fc);
+}
+
 /**
  * Mutual read-only between contact and account:
  * - If contact has value and account is empty, account becomes read-only
