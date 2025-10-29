@@ -7,7 +7,8 @@ module.exports = {
         conditionEvaluator: './WebResources/src/core/condition.evaluator.ts',
         kyc_approval_form: './WebResources/src/form/kyc_approval.form.ts',
         dynamicMandatoryEngine: './WebResources/src/features/dynamicMandatory/dynamicMandatoryEngine.ts',
-        sourceoffundevent_form: './WebResources/src/form/sourceoffundevent.form.ts'
+        sourceoffundevent_form: './WebResources/src/form/sourceoffundevent.form.ts',
+        custodianbankassessmentmanagement_form: './WebResources/src/form/custodianbankassessmentmanagement.form.ts',
     },
     output: {
         path: path.resolve(__dirname, 'WebResources/dist'),
