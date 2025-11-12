@@ -137,7 +137,12 @@ export class FormControlHelper {
     }
 
     /** Disable or enable all disableable controls inside a tab section */
-    static setDisabledAllControlsInSection(fc: Xrm.FormContext, tabName: string, sectionName: string, disabled: boolean = true): void {
+    static setDisabledAllControlsInSection(
+        fc: Xrm.FormContext,
+        tabName: string,
+        sectionName: string,
+        disabled: boolean = true
+    ): void {
         const tab = fc.ui?.tabs?.get?.(tabName);
         if (!tab) return;
         const section = tab.sections?.get?.(sectionName);
@@ -147,9 +152,62 @@ export class FormControlHelper {
                 if (VisibilityHelper.isDisableable(control)) {
                     try { control.setDisabled(disabled); } catch { /* ignore */ }
                 }
-                // Optional: Spezialfälle (Subgrid etc.) könnten hier behandelt werden
+                // Optional: special handling for subgrids, which do not support setDisabled
             });
         } catch { /* ignore */ }
+    }
+
+   /**   
+   * de/activate only the specified controls (by name) in a section.   
+   * Does nothing if the list is empty or controls are not found.
+   */
+    static setDisabledNamedControlsInSection(
+        fc: Xrm.FormContext,
+        tabName: string,
+        sectionName: string,
+        controlNames: readonly string[],
+        disabled: boolean = true
+    ): void {
+        if (!Array.isArray(controlNames) || controlNames.length === 0) return;
+
+        const tab = fc.ui?.tabs?.get?.(tabName);
+        if (!tab) return;
+
+        const section = tab.sections?.get?.(sectionName);
+        if (!section) return;
+
+        controlNames
+            .map((name) => FormControlHelper.findControlInSection(section, name))
+            .filter((c): c is Xrm.Controls.Control => Boolean(c))
+            .forEach((control) => FormControlHelper.setDisabledIfAllowed(control, disabled));
+    }
+
+    private static findControlInSection(
+        section: Xrm.Controls.Section,
+        name: string
+    ): Xrm.Controls.Control | undefined {
+        // primary: direct per Name
+        const direct = section.controls.get?.(name);
+        if (direct) return direct;
+
+        // Fallback: search by getName() over the collection
+        let found: Xrm.Controls.Control | undefined;
+        section.controls.forEach((c) => {
+            if (c.getName?.() === name) found = c;
+        });
+        return found;
+    }
+
+    private static setDisabledIfAllowed(control: Xrm.Controls.Control, disabled: boolean): void {
+        if (!VisibilityHelper.isDisableable(control)) return;
+        try {
+            // only change if different
+            const current = control.getDisabled?.();
+            if (typeof current === "boolean" && current === disabled) return;
+            control.setDisabled(disabled);
+        } catch {
+            /* no-op */
+        }
     }
 }
 
