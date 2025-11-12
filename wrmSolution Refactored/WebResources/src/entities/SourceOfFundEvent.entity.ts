@@ -7,6 +7,14 @@ export const SOURCEOFFUNDEVENT = {
         ownerid: "ownerid",
         compliancecomment: "mhwrmb_compliancecomment",
         compliancestatus: "mhwrmb_compliancestatus",
+        name: "mhwrmb_name",
+        softype: "mhwrmb_softype",
+        periodstart: "mhwrmb_periodstart",
+        periodend: "mhwrmb_periodend",
+        estamount_usd_period: "mhwrmb_estamount_usd_period",
+        estamount_usd_pa: "mhwrmb_estamount_usd_pa",
+        shortdescription: "mhwrmb_shortdescription",
+        supportingdoc: "mhwrmb_supportingdoc",
     },
     options: {        
         compliancestatus: {            
