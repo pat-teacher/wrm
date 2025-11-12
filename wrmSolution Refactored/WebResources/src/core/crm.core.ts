@@ -121,7 +121,7 @@ export class ApiClient {
 }
 
 // ---- Form helpers ----
-export class FormHelper {
+export class FormControlHelper {
     static getCurrentId(fc: any): string | null {
         try {
             const idRaw = fc?.data?.entity?.getId?.();
@@ -202,7 +202,7 @@ export class VisibilityHelper {
 
     static showIfLookupEquals(fc: any, lookupAttr: string, targetId: string, controlName: string) {
         return VisibilityHelper.showIf(fc, controlName, () => {
-            const current = FormHelper.getLookupId(fc, lookupAttr);
+            const current = FormControlHelper.getLookupId(fc, lookupAttr);
             return !!current && Util.sanitizeGuid(current) === Util.sanitizeGuid(targetId);
         });
     }

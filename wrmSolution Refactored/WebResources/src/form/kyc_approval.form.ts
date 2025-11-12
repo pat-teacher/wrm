@@ -11,7 +11,7 @@ import {
 import {
     Util,
     ApiClient,
-    FormHelper,
+    FormControlHelper,
     GridHelper,
     VisibilityHelper,
     LookupDialogHelper,
@@ -56,14 +56,14 @@ export async function addAllowedAccounts(primaryControl: any) {
         return;
     }
 
-    const currentId = FormHelper.getCurrentId(fc);
+    const currentId = FormControlHelper.getCurrentId(fc);
     if (!currentId) {
         await xrm.Navigation.openAlertDialog({ text: "Please save the record first." });
         return;
     }
 
-    const contactId = FormHelper.getLookupId(fc, RISKSUMMARYANDAPPROVAL.fields.contactId);
-    const companyId = FormHelper.getLookupId(fc, RISKSUMMARYANDAPPROVAL.fields.companyId);
+    const contactId = FormControlHelper.getLookupId(fc, RISKSUMMARYANDAPPROVAL.fields.contactId);
+    const companyId = FormControlHelper.getLookupId(fc, RISKSUMMARYANDAPPROVAL.fields.companyId);
 
     if (!contactId && !companyId) {
         await xrm.Navigation.openAlertDialog({ text: "Please set either a Contact or a Company first." });
