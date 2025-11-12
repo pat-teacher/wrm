@@ -1,7 +1,7 @@
 import { CONTACT } from "./../entities/Contact.entity";
 import { COMPANY } from "../entities/Company.entity";
 import { SOURCEOFFUNDEVENT } from "./../entities/SourceOfFundEvent.entity";
-import { FormWait, OwnerHelper, OwnerRef, FormTypeHelper, SecurityService, VisibilityHelper, OwnerService, LookupViewHelper } from "./../core/crm.core";
+import { FormWait, OwnerHelper, OwnerRef, FormTypeHelper, SecurityService, FormControlHelper, VisibilityHelper, OwnerService, LookupViewHelper } from "./../core/crm.core";
 import { SECURITY_ROLES } from "../core/SecurityRoles";
 
 let _desiredOwner: OwnerRef | null = null;
@@ -31,23 +31,23 @@ async function applyComplianceOfficerAccess(fc: Xrm.FormContext): Promise<void> 
         const isComplianceOfficer = await SecurityService.hasCurrentUserRole(SECURITY_ROLES.WRM_COMPLIANCE_OFFICER);
         // Compliance Officer: always enabled (field-level security governs actual permission)
         if (isComplianceOfficer) {
-            VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, false);
-            VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, false);
-            VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, false);
+            FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, false);
+            FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, false);
+            FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, false);
             return;
         }
 
         // Non Officer: default disabled
-        VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, true);
-        VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, true);
-        VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, true);
+        FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, true);
+        FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, true);
+        FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, true);
 
         const statusAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.compliancestatus) as Xrm.Attributes.OptionSetAttribute | undefined;
         const statusVal = statusAttr?.getValue?.();
         if (statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.PENDING || statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.REJECTED || statusVal === null) {
-            VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, false);
-            VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, false);
-            VisibilityHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, false);
+            FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, false);
+            FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, false);
+            FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, false);
         }
     } catch { /* ignore */ }
 }
