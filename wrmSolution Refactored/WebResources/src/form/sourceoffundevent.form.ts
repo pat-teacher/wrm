@@ -55,10 +55,8 @@ async function applyComplianceOfficerAccess(fc: Xrm.FormContext): Promise<void> 
         // Non Officer: default disabled
         FormControlHelper.setDisabledNamedControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, controlsToDisableInGeneralInformationSection, true);
         FormControlHelper.setDisabledNamedControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, controlsToDisableWealthInformationSection, true);        
-
-        const statusAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.compliancestatus) as Xrm.Attributes.OptionSetAttribute | undefined;
-        const statusVal = statusAttr?.getValue?.();
-        if (statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.PENDING || statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.REJECTED || statusVal === null) {
+        
+        if (isComplianceStatusPendingOrRejected(fc)) {
             FormControlHelper.setDisabledNamedControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, controlsToDisableInGeneralInformationSection, false);
             FormControlHelper.setDisabledNamedControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, controlsToDisableWealthInformationSection, false);            
         }
@@ -136,28 +134,45 @@ export function onOwnerLookupRefresh(executionContext: Xrm.Events.EventContext):
  * - Otherwise (both empty or both set), both are editable
  */
 function applyMutualReadOnlyContactAccount(fc: Xrm.FormContext): void {
-    const contactField = SOURCEOFFUNDEVENT.fields.contactid;
-    const accountField = SOURCEOFFUNDEVENT.fields.accountid;
+    if (isComplianceStatusPendingOrRejected(fc)) {
+        const contactField = SOURCEOFFUNDEVENT.fields.contactid;
+        const accountField = SOURCEOFFUNDEVENT.fields.accountid;
 
-    const contactAttr = fc.getAttribute?.(contactField) as Xrm.Attributes.LookupAttribute | undefined;
-    const accountAttr = fc.getAttribute?.(accountField) as Xrm.Attributes.LookupAttribute | undefined;
+        const contactAttr = fc.getAttribute?.(contactField) as Xrm.Attributes.LookupAttribute | undefined;
+        const accountAttr = fc.getAttribute?.(accountField) as Xrm.Attributes.LookupAttribute | undefined;
 
-    const hasContact = !!contactAttr?.getValue?.()?.[0]?.id;
-    const hasAccount = !!accountAttr?.getValue?.()?.[0]?.id;
+        const hasContact = !!contactAttr?.getValue?.()?.[0]?.id;
+        const hasAccount = !!accountAttr?.getValue?.()?.[0]?.id;
 
-    // exactly one set => disable the other; default: enable both
-    if (hasContact && !hasAccount) {
-        VisibilityHelper.setDisabled(fc, accountField, true);
+        // exactly one set => disable the other; default: enable both
+        if (hasContact && !hasAccount) {
+            VisibilityHelper.setDisabled(fc, accountField, true);
+            VisibilityHelper.setDisabled(fc, contactField, false);
+            return;
+        }
+
+        if (hasAccount && !hasContact) {
+            VisibilityHelper.setDisabled(fc, contactField, true);
+            VisibilityHelper.setDisabled(fc, accountField, false);
+            return;
+        }
+
         VisibilityHelper.setDisabled(fc, contactField, false);
-        return;
-    }
-
-    if (hasAccount && !hasContact) {
-        VisibilityHelper.setDisabled(fc, contactField, true);
         VisibilityHelper.setDisabled(fc, accountField, false);
-        return;
-    }
+    }    
+}
 
-    VisibilityHelper.setDisabled(fc, contactField, false);
-    VisibilityHelper.setDisabled(fc, accountField, false);
+/**
+ * Checks if the compliance status is PENDING, REJECTED, or null.
+ * @param fc The form context.
+ * @returns True if the compliance status is PENDING, REJECTED, or null; otherwise, false.
+ */
+function isComplianceStatusPendingOrRejected(fc: Xrm.FormContext): boolean {
+    const statusAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.compliancestatus) as Xrm.Attributes.OptionSetAttribute | undefined;
+    const statusVal = statusAttr?.getValue?.();
+    return (
+        statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.PENDING ||
+        statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.REJECTED ||
+        statusVal === null
+    );
 }
