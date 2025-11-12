@@ -28,26 +28,39 @@ export async function onLoad(executionContext: Xrm.Events.EventContext) {
 /** Enables compliance fields for users with WRM Compliance Officer role */
 async function applyComplianceOfficerAccess(fc: Xrm.FormContext): Promise<void> {
     try {
+        const controlsToDisableInGeneralInformationSection: string[] = [
+            SOURCEOFFUNDEVENT.fields.name,
+            SOURCEOFFUNDEVENT.fields.ownerid,
+            SOURCEOFFUNDEVENT.fields.contactid,
+            SOURCEOFFUNDEVENT.fields.accountid
+        ];
+        const controlsToDisableWealthInformationSection: string[] = [
+            SOURCEOFFUNDEVENT.fields.softype,
+            SOURCEOFFUNDEVENT.fields.periodstart,
+            SOURCEOFFUNDEVENT.fields.periodend,
+            SOURCEOFFUNDEVENT.fields.estamount_usd_pa,
+            SOURCEOFFUNDEVENT.fields.estamount_usd_period,
+            SOURCEOFFUNDEVENT.fields.shortdescription,
+            SOURCEOFFUNDEVENT.fields.supportingdoc
+        ];
         const isComplianceOfficer = await SecurityService.hasCurrentUserRole(SECURITY_ROLES.WRM_COMPLIANCE_OFFICER);
         // Compliance Officer: always enabled (field-level security governs actual permission)
+        SOURCEOFFUNDEVENT.fields.name
         if (isComplianceOfficer) {
-            FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, false);
-            FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, false);
-            FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, false);
+            FormControlHelper.setDisabledNamedControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, controlsToDisableInGeneralInformationSection, false);
+            FormControlHelper.setDisabledNamedControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, controlsToDisableWealthInformationSection, false);            
             return;
         }
 
         // Non Officer: default disabled
-        FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, true);
-        FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, true);
-        FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, true);
+        FormControlHelper.setDisabledNamedControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, controlsToDisableInGeneralInformationSection, true);
+        FormControlHelper.setDisabledNamedControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, controlsToDisableWealthInformationSection, true);        
 
         const statusAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.compliancestatus) as Xrm.Attributes.OptionSetAttribute | undefined;
         const statusVal = statusAttr?.getValue?.();
         if (statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.PENDING || statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.REJECTED || statusVal === null) {
-            FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, false);
-            FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, false);
-            FormControlHelper.setDisabledAllControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.COMPLIANCE_SECTION, false);
+            FormControlHelper.setDisabledNamedControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, controlsToDisableInGeneralInformationSection, false);
+            FormControlHelper.setDisabledNamedControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, controlsToDisableWealthInformationSection, false);            
         }
     } catch { /* ignore */ }
 }
