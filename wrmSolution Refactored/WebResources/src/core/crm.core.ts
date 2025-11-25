@@ -547,3 +547,69 @@ export class LookupViewHelper {
         LookupViewHelper.addCustomView(fc, controlName, viewId, entityName, viewDisplayName, fetchXml, layoutXml, true);
     }
 }
+
+export class FieldValidator {
+    /**
+     * Validates a numeric text field with a maximum of 12 digits.
+     * Can be used for OnChange events and optionally receives the attribute name as a parameter.
+     */
+    static validateBigNumber(
+        executionContext: Xrm.Events.EventContext,
+        attributeName?: string
+    ): void {
+        const formContext = executionContext.getFormContext() as Xrm.FormContext;
+
+        // If no attribute name is provided → use event source
+        if (!attributeName) {
+            const eventSource = executionContext.getEventSource() as Xrm.Attributes.Attribute;
+            if (!eventSource) return;
+            attributeName = eventSource.getName();
+        }
+
+        const attribute = formContext.getAttribute(attributeName);
+        const control = formContext.getControl(attributeName) as Xrm.Controls.StandardControl;
+
+        if (!attribute || !control) return;
+
+        const notificationId = `${attributeName}_BigNumberError`;
+        let value = attribute.getValue() as string | null;
+
+        // If the field is truly empty (null) → clear error and exit
+        if (value === null) {
+            control.clearNotification(notificationId);
+            return;
+        }
+
+        // Keep original string, but work on a copy
+        const raw = value.toString();
+
+        // If the user entered only whitespace → treat as invalid
+        if (raw.trim().length === 0) {
+            attribute.setValue(null);
+            control.setNotification(
+                "Please enter a numeric value with a maximum of 12 digits.",
+                notificationId
+            );
+            return;
+        }
+
+        // Remove all whitespace for validation / storage
+        const digitsOnly = raw.replace(/\s+/g, "");
+
+        // Validation: only digits, max. 12 characters
+        const isValid = /^\d{1,12}$/.test(digitsOnly);
+
+        if (!isValid) {
+            attribute.setValue(null);
+            control.setNotification(
+                "Please enter a numeric value with a maximum of 12 digits.",
+                notificationId
+            );
+            return;
+        }
+
+        // Valid → clear notification and store raw value without spaces
+        control.clearNotification(notificationId);
+        attribute.setValue(digitsOnly);
+    }
+}
