@@ -1,5 +1,5 @@
 import { CUSTODIANBANKASSESSMENTMANAGEMENT } from "../entities/CustodianBankAssessmentManagement.entity";
-import { LookupViewHelper, FieldValidator } from "../core/crm.core";
+import { LookupViewHelper } from "../core/crm.core";
 
 export async function onLoad(executionContext: Xrm.Events.EventContext) {
     const fc = executionContext.getFormContext();
@@ -24,14 +24,3 @@ export function onOwnerLookupRefresh(executionContext: Xrm.Events.EventContext):
     configureOwnerLookup(fc);
 }
 
-/**
- * Validates a numeric text field with a maximum of 12 digits.
- * Can be used for OnChange events and optionally receives the attribute name as a parameter.
- */
-export function validateBigNumber(
-    executionContext: Xrm.Events.EventContext,
-    attributeName?: string
-): void {
-
-    FieldValidator.validateBigNumber(executionContext, attributeName);
-}
