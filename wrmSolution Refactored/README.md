@@ -24,7 +24,15 @@ The JavaScript files are built with Webpack from the TypeScript sources in `WebR
   npm run build:dev
   ```
 
-`npm run build` uses the production Webpack configuration, while `npm run build:dev` uses the development configuration. The generated bundles are written to the configured Webpack output directory and can then be deployed as Web Resources in Dynamics.
+`npm run build` uses the production Webpack configuration, while `npm run build:dev` uses the development configuration.
+
+Generated output location:
+
+* Output directory: `WebResources/dist`
+* File pattern: `[name].js`
+* Example generated files: `entities.js`, `crmCore.js`, `dynamicMandatoryEngine.js`
+
+The generated bundles can then be deployed as Web Resources in Dynamics.
 
 Difference between both commands:
 
