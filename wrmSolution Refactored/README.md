@@ -1,9 +1,46 @@
 # wrmSolution
+
+## how to build javascripts
+
+The JavaScript files are built with Webpack from the TypeScript sources in `WebResources/src`.
+
+1. Install dependencies:
+
+  ```bash
+  npm install
+  ```
+
+  > **Note:** Run this command initially (or whenever `package.json` / `package-lock.json` changes). It is not required before every build.
+
+2. Run a production build:
+
+  ```bash
+  npm run build
+  ```
+
+3. Run a development build:
+
+  ```bash
+  npm run build:dev
+  ```
+
+`npm run build` uses the production Webpack configuration, while `npm run build:dev` uses the development configuration. The generated bundles are written to the configured Webpack output directory and can then be deployed as Web Resources in Dynamics.
+
+Difference between both commands:
+
+* `npm run build` (production): optimized/minified bundles for deployment.
+* `npm run build:dev` (development): easier debugging (typically less optimization and better source maps).
+
+Source map behavior:
+
+* Production uses `source-map`: generates separate `.map` files next to the bundles.
+* Development uses `inline-source-map`: embeds source maps directly into the JavaScript bundles (larger files, easier local debugging).
+
 ## Mandatory Engine
 
-### Kurz-Erklärung der Regeln (für Admins/Entwickler)
+### Kurz-Erklï¿½rung der Regeln (fï¿½r Admins/Entwickler)
 
-Dieses Feature steuert **dynamische Pflichtfelder** in Dynamics 365, abhängig von **Business Unit** und **Bedingungen pro Entität**.
+Dieses Feature steuert **dynamische Pflichtfelder** in Dynamics 365, abhï¿½ngig von **Business Unit** und **Bedingungen pro Entitï¿½t**.
 Die Konfiguration wird im Feld `wrm_mandatoryconfigjson` auf der **Business Unit** gespeichert.
 
 #### Aufbau der JSON-Struktur
@@ -43,11 +80,11 @@ Die Konfiguration wird im Feld `wrm_mandatoryconfigjson` auf der **Business Unit
 
   * `name`: eindeutiger Name
   * `mandatory`: Felder, die *required* werden
-  * `condition`: Bedingungen (UND-Verknüpfung)
+  * `condition`: Bedingungen (UND-Verknï¿½pfung)
 
 ---
 
-#### Unterstützte Operatoren
+#### Unterstï¿½tzte Operatoren
 
 | Operator    | Bedeutung           | Beispiel                       |
 | ----------- | ------------------- | ------------------------------ |
@@ -55,17 +92,17 @@ Die Konfiguration wird im Feld `wrm_mandatoryconfigjson` auf der **Business Unit
 | `ne`        | Ungleichheit        | `statecode != 1`               |
 | `in`        | Wert in einer Liste | `country in [DE, FR, IT]`      |
 | `isnull`    | Feld ist leer       | `wrm_country IS NULL`          |
-| `isnotnull` | Feld ist gefüllt    | `primarycontactid IS NOT NULL` |
+| `isnotnull` | Feld ist gefï¿½llt    | `primarycontactid IS NOT NULL` |
 
 ---
 
-#### Mögliche Datentypen für `value`
+#### Mï¿½gliche Datentypen fï¿½r `value`
 
-* **Zahl** ? OptionSet-Werte (`1`, `2`, …)
+* **Zahl** ? OptionSet-Werte (`1`, `2`, ï¿½)
 * **String** ? z. B. `"external"`, `"CH"`
 * **Boolean** ? `true` / `false`
 * **GUID** ? Lookup-ID (`"a1b2c3d4-1111-2222-3333-444455556666"`)
-* **Array** ? nur für `in` (`["DE","FR","IT"]`)
+* **Array** ? nur fï¿½r `in` (`["DE","FR","IT"]`)
 
 ---
 
@@ -130,14 +167,14 @@ Ein Account ist **Prospect** **und** **VIP** ? required:
 2. Registriere die Methoden:
 
    * **OnLoad**: `DynamicMandatory.init`
-   * **OnChange**: automatisch (über `autoWireOnChange`), oder manuell `DynamicMandatory.apply` auf relevante Felder
+   * **OnChange**: automatisch (ï¿½ber `autoWireOnChange`), oder manuell `DynamicMandatory.apply` auf relevante Felder
 
 ---
 
-#### Pflegehinweise für Admins
+#### Pflegehinweise fï¿½r Admins
 
 * JSON wird **pro Business Unit** gepflegt.
 * Jede Regel sollte einen **sprechenden Namen** haben (`name`).
-* Nur **logical names** von Feldern verwenden (z. B. `telephone1`, nicht „Telefon Geschäft“).
-* Syntaxfehler im JSON (fehlende Kommas, falsche Klammern) führen dazu, dass **keine Regeln angewendet werden**.
-* Neue Felder/Regeln können jederzeit hinzugefügt werden ? kein Code-Deploy nötig.
+* Nur **logical names** von Feldern verwenden (z. B. `telephone1`, nicht ï¿½Telefon Geschï¿½ftï¿½).
+* Syntaxfehler im JSON (fehlende Kommas, falsche Klammern) fï¿½hren dazu, dass **keine Regeln angewendet werden**.
+* Neue Felder/Regeln kï¿½nnen jederzeit hinzugefï¿½gt werden ? kein Code-Deploy nï¿½tig.
