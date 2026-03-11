@@ -38,12 +38,12 @@ Source map behavior:
 
 ## Mandatory Engine
 
-### Kurz-Erkl�rung der Regeln (f�r Admins/Entwickler)
+### Short explanation of the rules (for admins/developers)
 
-Dieses Feature steuert **dynamische Pflichtfelder** in Dynamics 365, abh�ngig von **Business Unit** und **Bedingungen pro Entit�t**.
-Die Konfiguration wird im Feld `wrm_mandatoryconfigjson` auf der **Business Unit** gespeichert.
+This feature controls **dynamic required fields** in Dynamics 365, depending on **Business Unit** and **conditions per entity**.
+The configuration is stored in the `wrm_mandatoryconfigjson` field on the **Business Unit**.
 
-#### Aufbau der JSON-Struktur
+#### JSON structure
 
 ```json
 {
@@ -73,48 +73,48 @@ Die Konfiguration wird im Feld `wrm_mandatoryconfigjson` auf der **Business Unit
 }
 ```
 
-##### Regeln:
+##### Rules:
 
-* **`default`**: Pflichtfelder, wenn keine Regel zutrifft.
-* **`rules`**: Liste von Regeln mit
+* **`default`**: Required fields when no rule matches.
+* **`rules`**: List of rules with
 
-  * `name`: eindeutiger Name
-  * `mandatory`: Felder, die *required* werden
-  * `condition`: Bedingungen (UND-Verkn�pfung)
+  * `name`: unique name
+  * `mandatory`: fields that become *required*
+  * `condition`: conditions (AND logic)
 
 ---
 
-#### Unterst�tzte Operatoren
+#### Supported operators
 
-| Operator    | Bedeutung           | Beispiel                       |
+| Operator    | Meaning             | Example                        |
 | ----------- | ------------------- | ------------------------------ |
-| `eq`        | Gleichheit          | `statecode == 0`               |
-| `ne`        | Ungleichheit        | `statecode != 1`               |
-| `in`        | Wert in einer Liste | `country in [DE, FR, IT]`      |
-| `isnull`    | Feld ist leer       | `wrm_country IS NULL`          |
-| `isnotnull` | Feld ist gef�llt    | `primarycontactid IS NOT NULL` |
+| `eq`        | Equality            | `statecode == 0`               |
+| `ne`        | Not equal           | `statecode != 1`               |
+| `in`        | Value in a list     | `country in [DE, FR, IT]`      |
+| `isnull`    | Field is empty      | `wrm_country IS NULL`          |
+| `isnotnull` | Field is filled     | `primarycontactid IS NOT NULL` |
 
 ---
 
-#### M�gliche Datentypen f�r `value`
+#### Supported data types for `value`
 
-* **Zahl** ? OptionSet-Werte (`1`, `2`, �)
-* **String** ? z. B. `"external"`, `"CH"`
-* **Boolean** ? `true` / `false`
-* **GUID** ? Lookup-ID (`"a1b2c3d4-1111-2222-3333-444455556666"`)
-* **Array** ? nur f�r `in` (`["DE","FR","IT"]`)
-
----
-
-#### Merge-Strategie
-
-* Mehrere passende Regeln werden **kombiniert**.
-* Pflichtfelder = **Union** aller `mandatory`-Felder.
-* Wenn keine Regel zutrifft ? es gilt `default`.
+* **Number**: OptionSet values (`1`, `2`, ...)
+* **String**: e.g. `"external"`, `"CH"`
+* **Boolean**: `true` / `false`
+* **GUID**: Lookup ID (`"a1b2c3d4-1111-2222-3333-444455556666"`)
+* **Array**: only for `in` (`["DE","FR","IT"]`)
 
 ---
 
-#### Beispiele
+#### Merge strategy
+
+* Multiple matching rules are **combined**.
+* Required fields = **union** of all `mandatory` fields.
+* If no rule matches, `default` is applied.
+
+---
+
+#### Examples
 
 ##### 1. Prospect Account
 
@@ -129,7 +129,7 @@ Die Konfiguration wird im Feld `wrm_mandatoryconfigjson` auf der **Business Unit
 }
 ```
 
-Pflichtfelder, wenn **beide Bedingungen** zutreffen.
+Required fields when **both conditions** match.
 
 ---
 
@@ -145,36 +145,36 @@ Pflichtfelder, wenn **beide Bedingungen** zutreffen.
 }
 ```
 
-Pflichtfelder, wenn `wrm_isvip == true`.
+Required fields when `wrm_isvip == true`.
 
 ---
 
-##### 3. Merge-Beispiel
+##### 3. Merge example
 
-Ein Account ist **Prospect** **und** **VIP** ? required:
+An account is **Prospect** **and** **VIP** ? required:
 `["primarycontactid","address1_line1","wrm_viplevel","ownerid"]`.
 
 ---
 
-#### Verwendung im Formular
+#### Usage in form
 
-1. Lade die Engine in dein Form-Skript:
+1. Load the engine in your form script:
 
    ```ts
    import { DynamicMandatory } from "../features/dynamic-mandatory/wrm_dynamicMandatory";
    ```
 
-2. Registriere die Methoden:
+2. Register the methods:
 
    * **OnLoad**: `DynamicMandatory.init`
-   * **OnChange**: automatisch (�ber `autoWireOnChange`), oder manuell `DynamicMandatory.apply` auf relevante Felder
+  * **OnChange**: automatically (via `autoWireOnChange`), or manually call `DynamicMandatory.apply` on relevant fields
 
 ---
 
-#### Pflegehinweise f�r Admins
+#### Maintenance notes for admins
 
-* JSON wird **pro Business Unit** gepflegt.
-* Jede Regel sollte einen **sprechenden Namen** haben (`name`).
-* Nur **logical names** von Feldern verwenden (z. B. `telephone1`, nicht �Telefon Gesch�ft�).
-* Syntaxfehler im JSON (fehlende Kommas, falsche Klammern) f�hren dazu, dass **keine Regeln angewendet werden**.
-* Neue Felder/Regeln k�nnen jederzeit hinzugef�gt werden ? kein Code-Deploy n�tig.
+* JSON is maintained **per Business Unit**.
+* Each rule should have a **descriptive name** (`name`).
+* Use only **logical names** of fields (e.g. `telephone1`, not "Business Phone").
+* JSON syntax errors (missing commas, incorrect brackets) result in **no rules being applied**.
+* New fields/rules can be added at any time ? no code deployment required.
