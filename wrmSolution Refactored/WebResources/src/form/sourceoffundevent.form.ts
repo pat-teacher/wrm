@@ -5,6 +5,7 @@ import { FormWait, OwnerHelper, OwnerRef, FormTypeHelper, SecurityService, FormC
 import { SECURITY_ROLES } from "../core/SecurityRoles";
 
 let _desiredOwner: OwnerRef | null = null;
+const DATE_FORMATTER = new Intl.DateTimeFormat("de-CH");
 
 export async function onLoad(executionContext: Xrm.Events.EventContext) {
     const fc = executionContext.getFormContext();
@@ -17,12 +18,20 @@ export async function onLoad(executionContext: Xrm.Events.EventContext) {
     try {
         const contactAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.contactid) as Xrm.Attributes.LookupAttribute | undefined;
         const accountAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.accountid) as Xrm.Attributes.LookupAttribute | undefined;
+        const softypeAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.softype) as Xrm.Attributes.OptionSetAttribute | undefined;
+        const periodStartAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.periodstart) as Xrm.Attributes.Attribute | undefined;
+        const periodEndAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.periodend) as Xrm.Attributes.Attribute | undefined;
         const complianceStatusAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.compliancestatus) as Xrm.Attributes.OptionSetAttribute | undefined;
         complianceStatusAttr?.addOnChange(async () => { await applyComplianceOfficerAccess(fc); applyMutualReadOnlyContactAccount(fc); });
         const handler = () => { applyMutualReadOnlyContactAccount(fc); void ensureOwnerFromContactOrAccountOnCreate(fc); };
+        const nameSyncHandler = () => { syncNameFromSourceOfFundFields(fc); };
         contactAttr?.addOnChange(handler);
         accountAttr?.addOnChange(handler);
+        softypeAttr?.addOnChange(nameSyncHandler);
+        periodStartAttr?.addOnChange(nameSyncHandler);
+        periodEndAttr?.addOnChange(nameSyncHandler);
     } catch { /* ignore */ }
+    syncNameFromSourceOfFundFields(fc);
 }
 
 /** Enables compliance fields for users with WRM Compliance Officer role */
@@ -175,4 +184,45 @@ function isComplianceStatusPendingOrRejected(fc: Xrm.FormContext): boolean {
         statusVal === SOURCEOFFUNDEVENT.options.compliancestatus.REJECTED ||
         statusVal === null
     );
+}
+
+function syncNameFromSourceOfFundFields(fc: Xrm.FormContext): void {
+    try {
+        const nameAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.name) as Xrm.Attributes.StringAttribute | undefined;
+        if (!nameAttr) return;
+
+        const softype = getSoftypeNamePart(fc);
+        const periodStart = getDateNamePart(fc, SOURCEOFFUNDEVENT.fields.periodstart);
+        const periodEnd = getDateNamePart(fc, SOURCEOFFUNDEVENT.fields.periodend);
+
+        const nextName = [softype, periodStart, periodEnd].filter(Boolean).join("-");
+        const currentName = nameAttr.getValue?.() ?? "";
+        const targetName = nextName || null;
+
+        if (currentName !== (targetName ?? "")) {
+            nameAttr.setValue(targetName);
+        }
+    } catch { /* ignore */ }
+}
+
+function getSoftypeNamePart(fc: Xrm.FormContext): string {
+    const softypeAttr = fc.getAttribute?.(SOURCEOFFUNDEVENT.fields.softype) as Xrm.Attributes.OptionSetAttribute | undefined;
+    if (!softypeAttr) return "";
+
+    const text = softypeAttr.getText?.();
+    if (typeof text === "string" && text.trim()) return text.trim();
+
+    const value = softypeAttr.getValue?.();
+    if (value === null || value === undefined) return "";
+    return String(value).trim();
+}
+
+function getDateNamePart(fc: Xrm.FormContext, attributeName: string): string {
+    const attr = fc.getAttribute<Xrm.Attributes.DateAttribute>(attributeName);
+    const rawValue = attr?.getValue();
+    if (!rawValue) return "";
+
+    const date = new Date(rawValue);
+    if (Number.isNaN(date.getTime())) return "";
+    return DATE_FORMATTER.format(date);
 }
