@@ -160,6 +160,15 @@ async function fetchCandidatePortfolioIds(contactId?: string, companyId?: string
                        value="${PORTFOLIORELATIONSHIPTYPE.options.NAME_PRINCIPAL}" />
           </filter>
         </link-entity>
+        <link-entity name="${ACCOUNT.entity}"
+                     from="${ACCOUNT.fields.pk}"
+                     to="${PORTFOLIORELATIONSHIP.fields.portfolioId}" alias="portfolio">
+          <filter>
+            <condition attribute="${ACCOUNT.fields.ambcust_accountstatusreason}"
+                       operator="eq"
+                       value="${ACCOUNT.options.IN_OPENING}" />
+          </filter>
+        </link-entity>
       </entity>
     </fetch>`.trim();
 
