@@ -76,7 +76,8 @@ async function applyComplianceOfficerAccess(fc: Xrm.FormContext): Promise<void> 
  * On create-like forms, set owner to the contact's owner; if not available, fallback to the account's owner.
  */
 async function ensureOwnerFromContactOrAccountOnCreate(fc: Xrm.FormContext): Promise<void> {
-    
+    if (!FormTypeHelper.isCreateLike(FormTypeHelper.get(fc))) return;
+
     const contactAttrName = SOURCEOFFUNDEVENT.fields.contactid;
     const accountAttrName = SOURCEOFFUNDEVENT.fields.accountid;
     const ownerAttrName = SOURCEOFFUNDEVENT.fields.ownerid;
