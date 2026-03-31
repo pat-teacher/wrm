@@ -54,7 +54,6 @@ async function applyComplianceOfficerAccess(fc: Xrm.FormContext): Promise<void> 
         ];
         const isComplianceOfficer = await SecurityService.hasCurrentUserRole(SECURITY_ROLES.WRM_COMPLIANCE_OFFICER);
         // Compliance Officer: always enabled (field-level security governs actual permission)
-        SOURCEOFFUNDEVENT.fields.name
         if (isComplianceOfficer) {
             FormControlHelper.setDisabledNamedControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.GENERAL_INFORMATION_SECTION, controlsToDisableInGeneralInformationSection, false);
             FormControlHelper.setDisabledNamedControlsInSection(fc, SOURCEOFFUNDEVENT.tabs.GENERAL, SOURCEOFFUNDEVENT.sections.WEALTH_INFORMATION_SECTION, controlsToDisableWealthInformationSection, false);            
