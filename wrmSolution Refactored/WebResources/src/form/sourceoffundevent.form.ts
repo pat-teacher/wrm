@@ -38,7 +38,6 @@ export async function onLoad(executionContext: Xrm.Events.EventContext) {
 async function applyComplianceOfficerAccess(fc: Xrm.FormContext): Promise<void> {
     try {
         const controlsToDisableInGeneralInformationSection: string[] = [
-            SOURCEOFFUNDEVENT.fields.name,
             SOURCEOFFUNDEVENT.fields.ownerid,
             SOURCEOFFUNDEVENT.fields.contactid,
             SOURCEOFFUNDEVENT.fields.accountid
