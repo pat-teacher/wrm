@@ -109,6 +109,8 @@ async function ensureOwnerFromContactOrAccountOnCreate(fc: Xrm.FormContext): Pro
 
 export function onSave(executionContext: Xrm.Events.SaveEventContext) {
     const fc = executionContext.getFormContext();
+    syncNameFromSourceOfFundFields(fc);
+
     const ownerAttrName = SOURCEOFFUNDEVENT.fields.ownerid;
     if (!_desiredOwner) return;
 
@@ -199,6 +201,7 @@ function syncNameFromSourceOfFundFields(fc: Xrm.FormContext): void {
         const targetName = nextName || null;
 
         if (currentName !== (targetName ?? "")) {
+            nameAttr.setSubmitMode?.("always");
             nameAttr.setValue(targetName);
         }
     } catch { /* ignore */ }
