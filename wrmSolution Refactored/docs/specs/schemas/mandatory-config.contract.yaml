@@ -1,0 +1,117 @@
+contract: mandatory-config
+version: 1
+owner: dynamic-mandatory-engine
+applies_to:
+  files:
+    - WebResources/src/config/BusinessUnitMandatoryConfig.json
+    - WebResources/src/config/BusinessUnitMandatoryConfigContact.json
+  dynamics_field: mhwrmb_mandatoryconfigjson
+
+root:
+  type: object
+  required:
+    - version
+    - entities
+  properties:
+    version:
+      type: integer
+      allowed_values: [1]
+    entities:
+      type: map
+      key:
+        type: string
+        meaning: dynamics_entity_logical_name
+      value:
+        ref: entity_config
+
+definitions:
+  entity_config:
+    type: object
+    required: []
+    properties:
+      default:
+        type: array
+        items:
+          type: string
+          meaning: field_logical_name
+      rules:
+        type: array
+        items:
+          ref: rule
+
+  rule:
+    type: object
+    required:
+      - name
+      - mandatory
+    properties:
+      name:
+        type: string
+        constraints:
+          unique_within_entity: true
+          non_empty: true
+      mandatory:
+        type: array
+        items:
+          type: string
+          meaning: field_logical_name
+        constraints:
+          unique_items: true
+      condition:
+        type: array
+        logic: and
+        items:
+          ref: condition
+        default_behavior: rule_matches_when_missing_or_empty
+
+  condition:
+    type: object
+    required:
+      - field
+      - operator
+    properties:
+      field:
+        type: string
+        meaning: field_logical_name
+        supports_dot_projection: true
+        projections:
+          - id
+          - name
+          - entityType
+      operator:
+        type: string
+        allowed_values:
+          - eq
+          - ne
+          - in
+          - isnull
+          - isnotnull
+          - notnull
+      value:
+        type:
+          - string
+          - number
+          - boolean
+          - array
+          - object
+          - null
+        required_for:
+          - eq
+          - ne
+          - in
+        ignored_for:
+          - isnull
+          - isnotnull
+          - notnull
+
+runtime:
+  merge_strategy: union_of_all_matching_rule_mandatory_fields
+  fallback_strategy: use_default_when_no_rule_matches
+  reset_strategy: clear_all_fields_from_default_and_all_rules_before_apply
+  invalid_json_behavior: no_rules_applied
+  missing_entity_behavior: no_rules_applied
+  missing_attribute_behavior: ignore_attribute
+  lookup_comparison:
+    guid: normalized_without_braces_lowercase
+    name: case_insensitive
+

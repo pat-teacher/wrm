@@ -1,0 +1,68 @@
+contract: entity-metadata
+version: 1
+applies_to:
+  path: WebResources/src/entities
+  file_pattern: "*.entity.ts"
+
+module:
+  export_style: named_const
+  const_assertion_required: true
+  naming:
+    const_name: UPPER_SNAKE_CASE
+    file_name: PascalCase.entity.ts
+
+required_shape:
+  entity:
+    type: string
+    meaning: dynamics_entity_logical_name
+    required: true
+  fields:
+    type: object
+    required: true
+    required_properties:
+      pk:
+        type: string
+        meaning: primary_key_logical_name
+
+optional_shape:
+  options:
+    type: object
+    meaning: option_set_values_grouped_by_field
+  tabs:
+    type: object
+    meaning: form_tab_names
+  sections:
+    type: object
+    meaning: form_section_names
+  controls:
+    type: object
+    meaning: form_control_names_when_different_or_reused
+  relationships:
+    type: object
+    meaning: relationship_schema_and_navigation_names
+
+rules:
+  - id: no_form_specific_logic
+    severity: error
+    description: Entity metadata files must not contain form event logic.
+  - id: no_duplicate_logical_names_in_forms
+    severity: warning
+    description: Form scripts should import logical names from entity metadata instead of repeating string literals.
+  - id: options_are_numeric_or_string_constants
+    severity: error
+    description: OptionSet values must be stable constants.
+  - id: relationship_definitions_include_schema_or_nav
+    severity: warning
+    description: Relationship metadata should distinguish schema name and navigation property when both are needed.
+
+example:
+  const_name: SOURCEOFFUNDEVENT
+  shape:
+    entity: mhwrmb_sourceoffundevent
+    fields:
+      pk: mhwrmb_sourceoffundeventid
+      ownerid: ownerid
+    options:
+      compliancestatus:
+        PENDING: 560850000
+

@@ -1,0 +1,63 @@
+contract: form-script
+version: 1
+applies_to:
+  path: WebResources/src/form
+  file_pattern: "*.form.ts"
+
+exports:
+  allowed_handler_names:
+    - onLoad
+    - onSave
+    - onOwnerLookupRefresh
+    - addAllowedAccounts
+  handler_signature:
+    onLoad:
+      receives: Xrm.Events.EventContext
+      may_be_async: true
+    onSave:
+      receives: Xrm.Events.SaveEventContext
+      may_be_async: false
+    ribbon_command:
+      receives: primaryControl
+      may_be_async: true
+
+dependencies:
+  allowed:
+    - ../core/*
+    - ../entities/*
+    - ../features/*
+  disallowed:
+    - direct_import_from_other_form_scripts
+
+rules:
+  - id: no_namespaces
+    severity: error
+    description: Do not use TypeScript namespaces for form handlers.
+  - id: exported_functions_are_dynamics_entry_points
+    severity: warning
+    description: Export only functions intended to be called by Dynamics or reused by explicit contract.
+  - id: defensive_xrm_access
+    severity: error
+    description: Code must tolerate missing attributes, controls and optional Xrm APIs.
+  - id: entity_constants_required
+    severity: warning
+    description: Logical names should come from entity metadata constants.
+  - id: reusable_logic_not_in_form
+    severity: warning
+    description: Logic used by multiple forms should move to core or features.
+  - id: async_errors_are_handled
+    severity: warning
+    description: Async form and ribbon handlers should handle user-facing errors.
+
+form_script_responsibilities:
+  allowed:
+    - register_onchange_handlers
+    - call_core_helpers
+    - call_feature_modules
+    - show_user_notifications
+    - orchestrate_form_specific_business_flow
+  not_allowed:
+    - define_shared_entity_metadata
+    - duplicate_generic_xrm_helpers
+    - contain reusable feature engines
+

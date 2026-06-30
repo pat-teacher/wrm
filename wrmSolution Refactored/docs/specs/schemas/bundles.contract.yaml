@@ -1,0 +1,52 @@
+contract: webpack-bundles
+version: 1
+applies_to:
+  config_file: webpack.common.js
+  output_path: WebResources/dist
+  runtime_library_root: WRM
+
+output:
+  filename_pattern: "[name].js"
+  library_type: window
+  library_name_pattern: "WRM.[entryName]"
+
+entries:
+  base:
+    entities:
+      source: WebResources/src/entities/index.ts
+      purpose: expose shared entity metadata
+    crmCore:
+      source: WebResources/src/core/crm.core.ts
+      purpose: expose shared CRM helpers
+    conditionEvaluator:
+      source: WebResources/src/core/condition.evaluator.ts
+      purpose: expose condition evaluation helpers
+  features:
+    dynamicMandatoryEngine:
+      source: WebResources/src/features/dynamicMandatory/dynamicMandatoryEngine.ts
+      purpose: dynamic mandatory field engine
+  forms:
+    kyc_approval_form:
+      source: WebResources/src/form/kyc_approval.form.ts
+      purpose: KYC approval form handlers
+    sourceoffundevent_form:
+      source: WebResources/src/form/sourceoffundevent.form.ts
+      purpose: Source of Fund Event form handlers
+    custodianbankassessmentmanagement_form:
+      source: WebResources/src/form/custodianbankassessmentmanagement.form.ts
+      purpose: Custodian Bank Assessment Management form handlers
+
+rules:
+  - id: entry_name_matches_webresource_name
+    severity: warning
+    description: Entry names should map predictably to Dynamics WebResource names.
+  - id: form_handler_bundle_per_form
+    severity: warning
+    description: Each form script should have an explicit form bundle unless intentionally merged.
+  - id: no_implicit_entry_points
+    severity: error
+    description: Dynamics must only call exported functions from configured entries.
+  - id: source_maps_enabled
+    severity: warning
+    description: Source maps should stay enabled for debugging unless release policy says otherwise.
+
