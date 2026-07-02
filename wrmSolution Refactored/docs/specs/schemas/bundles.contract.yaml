@@ -25,6 +25,12 @@ entries:
     dynamicMandatoryEngine:
       source: WebResources/src/features/dynamicMandatory/dynamicMandatoryEngine.ts
       purpose: dynamic mandatory field engine
+    createInternalTaskCommand:
+      source: WebResources/src/commands/createInternalTask.command.ts
+      purpose: command bar handler for Create Internal Task
+    createInternalTaskDialog:
+      source: WebResources/src/dialogs/createInternalTaskDialog.ts
+      purpose: HTML WebResource dialog logic for Create Internal Task
   forms:
     kyc_approval_form:
       source: WebResources/src/form/kyc_approval.form.ts
@@ -49,4 +55,3 @@ rules:
   - id: source_maps_enabled
     severity: warning
     description: Source maps should stay enabled for debugging unless release policy says otherwise.
-

@@ -7,6 +7,8 @@ module.exports = {
         conditionEvaluator: './WebResources/src/core/condition.evaluator.ts',
         kyc_approval_form: './WebResources/src/form/kyc_approval.form.ts',
         dynamicMandatoryEngine: './WebResources/src/features/dynamicMandatory/dynamicMandatoryEngine.ts',
+        createInternalTaskCommand: './WebResources/src/commands/createInternalTask.command.ts',
+        createInternalTaskDialog: './WebResources/src/dialogs/createInternalTaskDialog.ts',
         sourceoffundevent_form: './WebResources/src/form/sourceoffundevent.form.ts',
         custodianbankassessmentmanagement_form: './WebResources/src/form/custodianbankassessmentmanagement.form.ts',
     },
@@ -24,7 +26,7 @@ module.exports = {
                     loader: 'ts-loader',
                     options: {
                         compilerOptions: {
-                            sourceMap: true, // wichtig für Debugging
+                            sourceMap: true,
                         },
                     },
                 },

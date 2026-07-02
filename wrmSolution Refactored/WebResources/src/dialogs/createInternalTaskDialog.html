@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create Internal Task</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 20px;
+            color: #242424;
+            font: 14px/1.4 "Segoe UI", Arial, sans-serif;
+            background: #fff;
+        }
+
+        *, *::before, *::after {
+            box-sizing: inherit;
+        }
+
+        label {
+            display: block;
+            margin: 16px 0 6px;
+            font-weight: 600;
+        }
+
+        select {
+            width: 100%;
+            min-height: 34px;
+            padding: 5px 8px;
+            border: 1px solid #8a8886;
+            border-radius: 2px;
+            background: #fff;
+            color: #242424;
+        }
+
+        button {
+            min-width: 96px;
+            min-height: 32px;
+            padding: 5px 14px;
+            border: 1px solid #8a8886;
+            border-radius: 2px;
+            background: #fff;
+            color: #242424;
+            cursor: pointer;
+        }
+
+        button.primary {
+            border-color: #0f6cbd;
+            background: #0f6cbd;
+            color: #fff;
+        }
+
+        button:disabled {
+            cursor: default;
+            opacity: .55;
+        }
+
+        .source {
+            padding: 10px 12px;
+            border: 1px solid #edebe9;
+            background: #faf9f8;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 22px;
+        }
+
+        .status {
+            min-height: 20px;
+            margin-top: 12px;
+            color: #605e5c;
+        }
+
+        .status.error {
+            color: #a4262c;
+        }
+    </style>
+</head>
+<body>
+    <div class="source" id="sourceInfo"></div>
+
+    <label for="taskTypeSelect">Internal Task Type</label>
+    <select id="taskTypeSelect"></select>
+
+    <div class="status" id="status"></div>
+
+    <div class="actions">
+        <button type="button" id="cancelButton">Cancel</button>
+        <button type="button" class="primary" id="createButton">Create</button>
+    </div>
+
+    <script src="../dist/createInternalTaskDialog.js"></script>
+</body>
+</html>
+
