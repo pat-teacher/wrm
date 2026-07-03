@@ -5,7 +5,4 @@ export const APPCONFIG = {
         key: "nev_key",
         json: "nev_Value_nText",
     },
-    keys: {
-        createInternalTask: "create-internal-task",
-    },
 } as const;

@@ -2,6 +2,7 @@ import { INTERNALTASK } from "../../entities/InternalTask.entity";
 import { INTERNALTASKTYPE } from "../../entities/InternalTaskType.entity";
 import { APPCONFIG } from "../../entities/AppConfig.entity";
 import { Util } from "../../core/crm.core";
+import { CREATE_INTERNAL_TASK } from "./createInternalTask.constants";
 import type {
     CreateInternalTaskConfig,
     CreateInternalTaskDialogData,
@@ -10,7 +11,6 @@ import type {
     InternalTaskTypeOption,
 } from "./createInternalTask.types";
 
-const DIALOG_WEBRESOURCE_NAME = "wrm_/dialogs/createInternalTaskDialog.html";
 const EMPTY_CONFIG: CreateInternalTaskConfig = { version: 1, taskTypes: [] };
 
 let createInternalTaskConfigCache: CreateInternalTaskConfig | null = null;
@@ -61,7 +61,7 @@ export async function openCreateInternalTaskDialog(source: CreateInternalTaskSou
     await getXrm().Navigation.navigateTo(
         {
             pageType: "webresource",
-            webresourceName: DIALOG_WEBRESOURCE_NAME,
+            webresourceName: CREATE_INTERNAL_TASK.dialogWebResourceName,
             data: encodeDialogData(source),
         },
         {
@@ -142,7 +142,7 @@ function parseCreateInternalTaskConfig(jsonText: string | null | undefined): Cre
 export async function loadCreateInternalTaskConfig(forceRefresh = false): Promise<CreateInternalTaskConfig> {
     if (!forceRefresh && createInternalTaskConfigCache) return createInternalTaskConfigCache;
 
-    const key = APPCONFIG.keys.createInternalTask.replace(/'/g, "''");
+    const key = CREATE_INTERNAL_TASK.configKey.replace(/'/g, "''");
     const options = [
         `?$select=${APPCONFIG.fields.json}`,
         `&$filter=${APPCONFIG.fields.key} eq '${key}'`,
