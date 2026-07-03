@@ -1,5 +1,5 @@
 export const CREATE_INTERNAL_TASK = {
-    configKey: "create-internal-task",
+    configKey: "idInternalTaskDialogConfig",
     dialogWebResourceName: "mhwrmb_createInternalTaskDialog.html",
 } as const;
 
