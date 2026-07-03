@@ -4,6 +4,7 @@ import { APPCONFIG } from "../../entities/AppConfig.entity";
 import { Util } from "../../core/crm.core";
 import { CREATE_INTERNAL_TASK } from "./createInternalTask.constants";
 import type {
+    CreateInternalTaskAvailability,
     CreateInternalTaskConfig,
     CreateInternalTaskDialogData,
     CreateInternalTaskSource,
@@ -172,6 +173,33 @@ export async function getAllowedInternalTaskTypeOptions(sourceEntity?: CreateInt
 
 export async function canCreateAnyInternalTask(sourceEntity?: CreateInternalTaskSourceEntity): Promise<boolean> {
     return (await getAllowedInternalTaskTypeOptions(sourceEntity)).length > 0;
+}
+
+export async function getCreateInternalTaskAvailability(
+    sourceEntity?: CreateInternalTaskSourceEntity
+): Promise<CreateInternalTaskAvailability> {
+    const config = await loadCreateInternalTaskConfig();
+    if (!config.taskTypes.length) {
+        return { canCreate: false, reason: "missing_config" };
+    }
+
+    const enabledOptions = config.taskTypes.filter((option) => option.enabled !== false);
+    if (!enabledOptions.length) {
+        return { canCreate: false, reason: "no_enabled_task_types" };
+    }
+
+    const sourceOptions = enabledOptions.filter((option) => isAllowedForSource(option, sourceEntity));
+    if (!sourceOptions.length) {
+        return { canCreate: false, reason: "no_source_match" };
+    }
+
+    const userRoleNames = getCurrentUserRoleNames();
+    const roleOptions = sourceOptions.filter((option) => hasAnyRole(option.allowedRoles, userRoleNames));
+    if (!roleOptions.length) {
+        return { canCreate: false, reason: "no_role_match" };
+    }
+
+    return { canCreate: true };
 }
 
 export async function resolveInternalTaskTypeByCodeName(typeCodeName: string): Promise<{ id: string; name: string } | null> {

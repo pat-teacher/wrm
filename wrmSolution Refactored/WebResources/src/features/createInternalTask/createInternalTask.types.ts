@@ -23,3 +23,8 @@ export interface CreateInternalTaskConfig {
     version: number;
     taskTypes: InternalTaskTypeOption[];
 }
+
+export interface CreateInternalTaskAvailability {
+    canCreate: boolean;
+    reason?: "missing_config" | "no_enabled_task_types" | "no_source_match" | "no_role_match";
+}
