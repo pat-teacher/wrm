@@ -14,8 +14,6 @@ import type {
 
 const EMPTY_CONFIG: CreateInternalTaskConfig = { version: 1, taskTypes: [] };
 
-let createInternalTaskConfigCache: CreateInternalTaskConfig | null = null;
-
 export function getXrm(): any {
     return (window as any).Xrm ?? (window.parent as any)?.Xrm;
 }
@@ -140,9 +138,7 @@ function parseCreateInternalTaskConfig(jsonText: string | null | undefined): Cre
     }
 }
 
-export async function loadCreateInternalTaskConfig(forceRefresh = false): Promise<CreateInternalTaskConfig> {
-    if (!forceRefresh && createInternalTaskConfigCache) return createInternalTaskConfigCache;
-
+export async function loadCreateInternalTaskConfig(): Promise<CreateInternalTaskConfig> {
     const key = CREATE_INTERNAL_TASK.configKey.replace(/'/g, "''");
     const options = [
         `?$select=${APPCONFIG.fields.json}`,
@@ -153,11 +149,9 @@ export async function loadCreateInternalTaskConfig(forceRefresh = false): Promis
     try {
         const result = await getXrm().WebApi.retrieveMultipleRecords(APPCONFIG.entity, options);
         const jsonText = result?.entities?.[0]?.[APPCONFIG.fields.json] as string | null | undefined;
-        createInternalTaskConfigCache = parseCreateInternalTaskConfig(jsonText);
-        return createInternalTaskConfigCache;
+        return parseCreateInternalTaskConfig(jsonText);
     } catch {
-        createInternalTaskConfigCache = EMPTY_CONFIG;
-        return createInternalTaskConfigCache;
+        return EMPTY_CONFIG;
     }
 }
 
