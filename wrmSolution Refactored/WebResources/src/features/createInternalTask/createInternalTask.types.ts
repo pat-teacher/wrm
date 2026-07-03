@@ -1,5 +1,3 @@
-import type { SecurityRoleName } from "../../core/SecurityRoles";
-
 export type CreateInternalTaskSourceEntity = "contact" | "account" | "wrmb_portfolio";
 
 export interface CreateInternalTaskSource {
@@ -11,11 +9,17 @@ export interface CreateInternalTaskSource {
 export interface InternalTaskTypeOption {
     key: string;
     label: string;
-    taskTypeName: string;
-    allowedRoles: readonly SecurityRoleName[];
+    taskTypeCodeName: string;
+    allowedRoles?: readonly string[];
+    sourceEntities?: readonly CreateInternalTaskSourceEntity[];
+    enabled?: boolean;
 }
 
 export interface CreateInternalTaskDialogData extends CreateInternalTaskSource {
     menuKey?: string;
 }
 
+export interface CreateInternalTaskConfig {
+    version: number;
+    taskTypes: InternalTaskTypeOption[];
+}

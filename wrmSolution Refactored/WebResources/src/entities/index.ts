@@ -9,3 +9,4 @@ export * from "./Contact.entity";
 export * from "./Company.entity";
 export * from "./InternalTask.entity";
 export * from "./InternalTaskType.entity";
+export * from "./AppConfig.entity";

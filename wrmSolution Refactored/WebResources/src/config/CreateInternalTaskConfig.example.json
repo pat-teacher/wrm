@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "taskTypes": [
+    {
+      "key": "review",
+      "label": "Review",
+      "taskTypeCodeName": "Review",
+      "allowedRoles": [
+        "WRM Internal Task Create"
+      ],
+      "sourceEntities": [
+        "contact",
+        "account",
+        "wrmb_portfolio"
+      ],
+      "enabled": true
+    },
+    {
+      "key": "follow_up",
+      "label": "Follow up",
+      "taskTypeCodeName": "Follow up",
+      "allowedRoles": [
+        "WRM Internal Task Create"
+      ],
+      "sourceEntities": [
+        "contact",
+        "account",
+        "wrmb_portfolio"
+      ],
+      "enabled": true
+    },
+    {
+      "key": "approval",
+      "label": "Approval",
+      "taskTypeCodeName": "Approval",
+      "allowedRoles": [
+        "WRM Internal Task Approval"
+      ],
+      "sourceEntities": [
+        "account"
+      ],
+      "enabled": true
+    }
+  ]
+}
+

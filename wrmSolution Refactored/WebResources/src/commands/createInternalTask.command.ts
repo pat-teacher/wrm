@@ -14,7 +14,7 @@ export async function openDialog(primaryControl: Xrm.FormContext): Promise<void>
         return;
     }
 
-    if (!canCreateAnyInternalTask()) {
+    if (!(await canCreateAnyInternalTask(source.entityName))) {
         await getXrm().Navigation.openAlertDialog({
             text: "You do not have permission to create Internal Tasks.",
         });
@@ -25,6 +25,5 @@ export async function openDialog(primaryControl: Xrm.FormContext): Promise<void>
 }
 
 export function canCreateInternalTask(): boolean {
-    return canCreateAnyInternalTask();
+    return true;
 }
-

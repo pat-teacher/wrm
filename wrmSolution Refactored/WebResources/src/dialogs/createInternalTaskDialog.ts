@@ -21,11 +21,11 @@ function setStatus(text: string, isError = false): void {
     status.className = isError ? "status error" : "status";
 }
 
-function populateOptions(): void {
+async function populateOptions(): Promise<void> {
     const select = getElement<HTMLSelectElement>("taskTypeSelect");
     select.innerHTML = "";
 
-    allowedOptions = getAllowedInternalTaskTypeOptions();
+    allowedOptions = await getAllowedInternalTaskTypeOptions(dialogSource?.entityName);
     for (const option of allowedOptions) {
         const item = document.createElement("option");
         item.value = option.key;
@@ -83,7 +83,7 @@ function init(): void {
         ? `${dialogSource.name} (${dialogSource.entityName})`
         : dialogSource.entityName;
 
-    populateOptions();
+    void populateOptions();
     getElement<HTMLButtonElement>("createButton").addEventListener("click", () => void createSelectedTask());
     getElement<HTMLButtonElement>("cancelButton").addEventListener("click", closeDialog);
 }
