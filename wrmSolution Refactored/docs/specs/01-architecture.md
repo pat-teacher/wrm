@@ -28,6 +28,8 @@ Entity files define Dynamics logical names, fields, OptionSets, tabs, sections, 
 
 Form scripts and features must use these constants instead of repeating string literals.
 
+For Dataverse Web API calls, entity metadata must use the actual logical / Web API property names used by OData. Do not use display names or schema-name casing in `$select`, `$filter`, OData binds, or response property access. In practice, custom column logical names are usually lowercase, for example `nev_key` and `nev_value_ntext`, even when the schema names are shown as `nev_Key` and `nev_Value_nText`.
+
 ### Features
 
 Path: `WebResources/src/features`

@@ -45,6 +45,9 @@ rules:
   - id: no_form_specific_logic
     severity: error
     description: Entity metadata files must not contain form event logic.
+  - id: web_api_names_are_logical_names
+    severity: error
+    description: Field names used for Dataverse Web API calls must be actual logical / OData property names, not display names or schema-name casing. Custom field logical names are usually lowercase, e.g. nev_key rather than nev_Key.
   - id: no_duplicate_logical_names_in_forms
     severity: warning
     description: Form scripts should import logical names from entity metadata instead of repeating string literals.

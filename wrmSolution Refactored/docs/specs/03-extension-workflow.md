@@ -6,7 +6,8 @@
 2. Define `entity` and `fields.pk`.
 3. Add additional fields, OptionSets, tabs, sections, and relationships only when they are used.
 4. Add an export in `WebResources/src/entities/index.ts` when the entity is used by multiple modules.
-5. Do not duplicate logical names directly in form scripts.
+5. Verify every table and field value against the Dataverse logical name, especially before using it in Web API `$select`, `$filter`, OData binds, or response property access.
+6. Do not duplicate logical names directly in form scripts.
 
 ## New Form Script
 
@@ -44,6 +45,7 @@ The following does not belong in Core:
 ## Review Checklist
 
 - Are logical names defined centrally in entity files?
+- Are Web API field names using the actual logical / OData property names, not display names or schema-name casing?
 - Are there duplicated Xrm accesses that belong in Core?
 - Is the dependency direction respected?
 - Is the behavior configurable when it is business-data-driven?
