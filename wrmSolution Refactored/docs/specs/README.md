@@ -8,7 +8,7 @@ The goal is to make reusable architecture decisions, code contracts, and busines
 
 - `00-solution-vision.md`: Target state, scope, and architecture principles.
 - `01-architecture.md`: Layers, dependencies, and bundle structure.
-- `02-dynamic-mandatory-engine.md`: Behavior of the dynamic mandatory field engine.
+- `02-dynamic-mandatory-engine.md`: High-level overview of the dynamic mandatory field engine.
 - `03-extension-workflow.md`: Workflow for adding new entities, forms, and features.
 - `04-create-internal-task.md`: Technical documentation for the Create Internal Task command, dialog, configuration, security, and form integration.
 - `05-dynamic-mandatory-engine-technical.md`: Technical documentation for the Dynamic Mandatory Engine runtime architecture and form integration.
@@ -22,6 +22,8 @@ The goal is to make reusable architecture decisions, code contracts, and busines
 
 Markdown files describe intent, rules, and decisions for humans.
 YAML files describe verifiable contracts for reviews, scripts, or future CI checks.
+
+For the Dynamic Mandatory Engine, use `02-dynamic-mandatory-engine.md` as the entry point, `05-dynamic-mandatory-engine-technical.md` for technical implementation details, and `06-dynamic-mandatory-engine-maintenance.md` for JSON maintenance.
 
 If documents conflict, precedence is:
 

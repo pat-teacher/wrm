@@ -3,8 +3,8 @@ version: 1
 owner: dynamic-mandatory-engine
 applies_to:
   files:
-    - WebResources/src/config/BusinessUnitMandatoryConfig.json
-    - WebResources/src/config/BusinessUnitMandatoryConfigContact.json
+    - WebResources/src/config/BusinessUnitMandatoryConfig.basic.example.json
+    - WebResources/src/config/BusinessUnitMandatoryConfig.lookup-guid.example.json
   dynamics_field: mhwrmb_mandatoryconfigjson
 
 root:

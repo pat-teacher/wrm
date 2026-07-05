@@ -20,8 +20,8 @@ Each Location / Business Unit can have its own JSON configuration.
 Local example files are available for review and development:
 
 ```text
-WebResources/src/config/BusinessUnitMandatoryConfig.json
-WebResources/src/config/BusinessUnitMandatoryConfigContact.json
+WebResources/src/config/BusinessUnitMandatoryConfig.basic.example.json
+WebResources/src/config/BusinessUnitMandatoryConfig.lookup-guid.example.json
 MandatoryConfigJson-QuickGuide.md
 ```
 
@@ -148,6 +148,8 @@ Use only these operators:
 
 ## Value Examples
 
+This section contains copy/paste examples for common configuration cases.
+
 ### Text
 
 ```json
@@ -201,6 +203,146 @@ This is the recommended approach for stable lookup comparisons.
 ```
 
 Useful for owner fields where the value can be a user or a team.
+
+## Rule Examples
+
+### No Rule Matches, Use Default
+
+If no rule matches, the fields in `default` become required.
+
+```json
+{
+  "default": ["name"],
+  "rules": [
+    {
+      "name": "vip_requires_primary_contact",
+      "mandatory": ["primarycontactid"],
+      "condition": [
+        { "field": "wrm_isvip", "operator": "eq", "value": true }
+      ]
+    }
+  ]
+}
+```
+
+If `wrm_isvip` is not `true`, the only required field is:
+
+```json
+["name"]
+```
+
+### Two Rules Match, Mandatory Fields Are Merged
+
+If multiple rules match, the engine uses the union of all matching `mandatory` lists.
+
+```json
+{
+  "default": ["name"],
+  "rules": [
+    {
+      "name": "prospect_requires_primary_contact",
+      "mandatory": ["primarycontactid"],
+      "condition": [
+        { "field": "customertypecode", "operator": "eq", "value": 1 }
+      ]
+    },
+    {
+      "name": "vip_requires_owner",
+      "mandatory": ["ownerid"],
+      "condition": [
+        { "field": "wrm_isvip", "operator": "eq", "value": true }
+      ]
+    }
+  ]
+}
+```
+
+If both conditions match, the required fields are:
+
+```json
+["primarycontactid", "ownerid"]
+```
+
+`name` from `default` is not added, because `default` is fallback only.
+
+### Multiple Conditions In One Rule
+
+Conditions inside one rule are AND-combined.
+
+```json
+{
+  "name": "active_prospect_requires_address",
+  "mandatory": ["primarycontactid", "address1_line1"],
+  "condition": [
+    { "field": "customertypecode", "operator": "eq", "value": 1 },
+    { "field": "statecode", "operator": "eq", "value": 0 }
+  ]
+}
+```
+
+This rule matches only when `customertypecode` is `1` and `statecode` is `0`.
+
+### Multi-select Overlap
+
+Use `in` when at least one selected value should match.
+
+```json
+{
+  "name": "tagged_customer_requires_owner",
+  "mandatory": ["ownerid"],
+  "condition": [
+    { "field": "wrm_tags", "operator": "in", "value": [101, 202] }
+  ]
+}
+```
+
+If the form value contains either `101` or `202`, the rule matches.
+
+### Lookup By GUID
+
+Prefer GUID checks for stable lookup rules.
+
+```json
+{
+  "name": "specific_primary_contact_requires_phone",
+  "mandatory": ["telephone1"],
+  "condition": [
+    {
+      "field": "primarycontactid.id",
+      "operator": "eq",
+      "value": "a1b2c3d4-1111-2222-3333-444455556666"
+    }
+  ]
+}
+```
+
+### Lookup By Name
+
+Lookup name checks are readable, but they can break if the record name changes.
+
+```json
+{
+  "name": "specific_primary_contact_name_requires_phone",
+  "mandatory": ["telephone1"],
+  "condition": [
+    { "field": "primarycontactid", "operator": "eq", "value": "Jane Doe" }
+  ]
+}
+```
+
+### Owner Is User Instead Of Team
+
+Use `.entityType` when the same lookup can point to different table types.
+
+```json
+{
+  "name": "user_owned_record_requires_owner_note",
+  "mandatory": ["wrm_ownernote"],
+  "condition": [
+    { "field": "ownerid.entityType", "operator": "eq", "value": "systemuser" }
+  ]
+}
+```
 
 ## Maintenance Workflow
 
@@ -276,4 +418,3 @@ Check:
 - Do not use display names or labels as field names.
 - Avoid relying on `default` if fields must always be mandatory; repeat those fields in matching rules.
 - Test every changed rule with at least one positive and one negative case.
-

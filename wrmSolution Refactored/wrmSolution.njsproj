@@ -41,8 +41,8 @@
     <Content Include="webpack.common.js" />
     <Content Include="webpack.dev.js" />
     <Content Include="webpack.prod.js" />
-    <Content Include="WebResources\src\config\BusinessUnitMandatoryConfigContact.json" />
-    <Content Include="WebResources\src\config\BusinessUnitMandatoryConfig.json" />
+    <Content Include="WebResources\src\config\BusinessUnitMandatoryConfig.lookup-guid.example.json" />
+    <Content Include="WebResources\src\config\BusinessUnitMandatoryConfig.basic.example.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Deployment\" />

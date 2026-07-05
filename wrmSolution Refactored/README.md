@@ -46,143 +46,18 @@ Source map behavior:
 
 ## Mandatory Engine
 
-### Short explanation of the rules (for admins/developers)
+The Dynamic Mandatory Engine controls required fields in Dynamics forms from JSON configuration.
 
-This feature controls **dynamic required fields** in Dynamics 365, depending on **Business Unit** and **conditions per entity**.
-The configuration is stored in the `wrm_mandatoryconfigjson` field on the **Business Unit**.
+Active runtime configuration:
 
-#### JSON structure
-
-```json
-{
-  "version": 1,
-  "entities": {
-    "account": {
-      "default": ["name", "telephone1", "emailaddress1"],
-      "rules": [
-        {
-          "name": "prospect_account",
-          "mandatory": ["primarycontactid", "address1_line1"],
-          "condition": [
-            { "field": "customertypecode", "operator": "eq", "value": 1 },
-            { "field": "statecode", "operator": "eq", "value": 0 }
-          ]
-        },
-        {
-          "name": "vip_account",
-          "mandatory": ["wrm_viplevel", "ownerid"],
-          "condition": [
-            { "field": "wrm_isvip", "operator": "eq", "value": true }
-          ]
-        }
-      ]
-    }
-  }
-}
+```text
+Table:  ambcust_location
+Field:  mhwrmb_mandatoryconfigjson
 ```
 
-##### Rules:
+Use the SDD documentation as the maintained source of truth:
 
-* **`default`**: Required fields when no rule matches.
-* **`rules`**: List of rules with
-
-  * `name`: unique name
-  * `mandatory`: fields that become *required*
-  * `condition`: conditions (AND logic)
-
----
-
-#### Supported operators
-
-| Operator    | Meaning             | Example                        |
-| ----------- | ------------------- | ------------------------------ |
-| `eq`        | Equality            | `statecode == 0`               |
-| `ne`        | Not equal           | `statecode != 1`               |
-| `in`        | Value in a list     | `country in [DE, FR, IT]`      |
-| `isnull`    | Field is empty      | `wrm_country IS NULL`          |
-| `isnotnull` | Field is filled     | `primarycontactid IS NOT NULL` |
-
----
-
-#### Supported data types for `value`
-
-* **Number**: OptionSet values (`1`, `2`, ...)
-* **String**: e.g. `"external"`, `"CH"`
-* **Boolean**: `true` / `false`
-* **GUID**: Lookup ID (`"a1b2c3d4-1111-2222-3333-444455556666"`)
-* **Array**: only for `in` (`["DE","FR","IT"]`)
-
----
-
-#### Merge strategy
-
-* Multiple matching rules are **combined**.
-* Required fields = **union** of all `mandatory` fields.
-* If no rule matches, `default` is applied.
-
----
-
-#### Examples
-
-##### 1. Prospect Account
-
-```json
-{
-  "name": "prospect_account",
-  "mandatory": ["primarycontactid", "address1_line1"],
-  "condition": [
-    { "field": "customertypecode", "operator": "eq", "value": 1 },
-    { "field": "statecode", "operator": "eq", "value": 0 }
-  ]
-}
-```
-
-Required fields when **both conditions** match.
-
----
-
-##### 2. VIP Account
-
-```json
-{
-  "name": "vip_account",
-  "mandatory": ["wrm_viplevel", "ownerid"],
-  "condition": [
-    { "field": "wrm_isvip", "operator": "eq", "value": true }
-  ]
-}
-```
-
-Required fields when `wrm_isvip == true`.
-
----
-
-##### 3. Merge example
-
-An account is **Prospect** **and** **VIP** ? required:
-`["primarycontactid","address1_line1","wrm_viplevel","ownerid"]`.
-
----
-
-#### Usage in form
-
-1. Load the engine in your form script:
-
-   ```ts
-   import { DynamicMandatory } from "../features/dynamic-mandatory/wrm_dynamicMandatory";
-   ```
-
-2. Register the methods:
-
-   * **OnLoad**: `DynamicMandatory.init`
-  * **OnChange**: automatically (via `autoWireOnChange`), or manually call `DynamicMandatory.apply` on relevant fields
-
----
-
-#### Maintenance notes for admins
-
-* JSON is maintained **per Business Unit**.
-* Each rule should have a **descriptive name** (`name`).
-* Use only **logical names** of fields (e.g. `telephone1`, not "Business Phone").
-* JSON syntax errors (missing commas, incorrect brackets) result in **no rules being applied**.
-* New fields/rules can be added at any time ? no code deployment required.
+* `docs/specs/02-dynamic-mandatory-engine.md`: high-level overview.
+* `docs/specs/05-dynamic-mandatory-engine-technical.md`: technical runtime and form integration.
+* `docs/specs/06-dynamic-mandatory-engine-maintenance.md`: JSON maintenance guide.
+* `docs/specs/schemas/mandatory-config.contract.yaml`: machine-readable JSON contract.

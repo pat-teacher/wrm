@@ -2,100 +2,59 @@
 
 ## Purpose
 
-The Dynamic Mandatory Engine sets required fields in Dynamics forms based on a JSON configuration.
+The Dynamic Mandatory Engine sets required fields in Dynamics forms based on JSON configuration stored per Location / Business Unit.
 
-The configuration is read per Location / Business Unit from the field `mhwrmb_mandatoryconfigjson`.
+The active runtime configuration is read from:
 
-## Runtime Behavior
+```text
+Table:  ambcust_location
+Field:  mhwrmb_mandatoryconfigjson
+```
 
-During initialization:
+The engine exists to keep mandatory-field business rules out of individual form scripts and make them configurable as data.
 
-1. Read the form context.
-2. Determine the entity logical name.
-3. Determine the form's Location / Business Unit lookup.
-4. Load the mandatory JSON from Dynamics.
-5. Parse the JSON safely.
-6. Select the entity configuration.
-7. Reset all potentially required fields first.
-8. Evaluate rules.
-9. Set required fields.
-10. Register OnChange handlers for all condition fields.
+## Documentation Structure
 
-## Location / Business Unit Resolution
+This file is the high-level overview only.
 
-The engine determines the configuration lookup field based on the current entity:
+Detailed documentation is split by audience:
 
-- `contact` -> `CONTACT.fields.nev_businessunitid`
-- `account` -> `COMPANY.fields.nev_businessunit`
-- `wrmb_portfolio` -> `ACCOUNT.fields.ambcust_locationid`
+- `05-dynamic-mandatory-engine-technical.md`: technical runtime behavior, form integration, handlers, cache, and error handling.
+- `06-dynamic-mandatory-engine-maintenance.md`: JSON maintenance guide, examples, validation checklist, and troubleshooting.
+- `schemas/mandatory-config.contract.yaml`: machine-readable contract for the JSON configuration shape.
 
-New entities must be connected explicitly until a more generic mapping configuration is introduced.
+## Supported Entities
 
-## Rule Model
+The current runtime mapping supports:
 
-An entity configuration consists of:
+| Form entity | Location / Business Unit lookup |
+| --- | --- |
+| `contact` | `nev_businessunitid` |
+| `account` | `nev_businessunit` |
+| `wrmb_portfolio` | `ambcust_locationid` |
 
-- `default`: required fields when no rule matches.
-- `rules`: list of rules.
+The OnLoad handler must be registered on the forms where dynamic mandatory fields should be active:
 
-A rule consists of:
+```text
+WRM.dynamicMandatoryEngine.initializeDynamicMandatoryFields
+```
 
-- `name`: unique, descriptive name.
-- `mandatory`: fields that become required when the rule matches.
-- `condition`: AND-combined conditions.
+## Rule Summary
 
-If multiple rules match, their `mandatory` fields are merged.
-If no rule matches, `default` is used.
+At runtime, the engine:
 
-## Operators
+1. Resolves the current form entity.
+2. Resolves the Location / Business Unit lookup.
+3. Loads JSON from `mhwrmb_mandatoryconfigjson`.
+4. Selects the matching entity block from `config.entities`.
+5. Resets all potentially mandatory fields to optional.
+6. Evaluates all rules.
+7. Merges fields from all matching rules.
+8. Uses `default` only when no rule contributes fields.
+9. Registers OnChange handlers for condition fields.
 
-Supported:
+Rules are additive. There is no first-match-wins behavior.
 
-- `eq`
-- `ne`
-- `in`
-- `isnull`
-- `isnotnull`
-- `notnull`
+## Runtime Safety
 
-`notnull` is an alias for `isnotnull`.
-
-## Comparison Logic
-
-Primitive values are normalized and compared by type:
-
-- Numbers with numbers.
-- Booleans with booleans.
-- Strings case-insensitively.
-- GUIDs normalized without braces and lowercased.
-
-Lookups can be compared by:
-
-- GUID
-- Name
-- Object with `id`, `name`, `entityType`
-
-Dot notation is supported:
-
-- `primarycontactid.id`
-- `primarycontactid.name`
-- `primarycontactid.entityType`
-
-## Failure Cases
-
-The engine does not set required fields when:
-
-- no Location / Business Unit is available
-- the JSON is empty
-- the JSON is invalid
-- no matching entity configuration exists
-- an attribute is not available on the form
-
-Load or parse failures must not block the form.
-
-## Open Decisions
-
-- Should the Entity -> Business Unit field mapping become configurable?
-- Should a JSON Schema be introduced for real build-time validation?
-- Should the cache be invalidated when the Location changes on the form?
-
+The engine must not block form usage. If configuration is missing, invalid, or does not apply to the current form, no mandatory rules are applied.
