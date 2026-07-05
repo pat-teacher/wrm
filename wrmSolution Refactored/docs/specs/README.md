@@ -10,6 +10,7 @@ The goal is to make reusable architecture decisions, code contracts, and busines
 - `01-architecture.md`: Layers, dependencies, and bundle structure.
 - `02-dynamic-mandatory-engine.md`: Behavior of the dynamic mandatory field engine.
 - `03-extension-workflow.md`: Workflow for adding new entities, forms, and features.
+- `04-create-internal-task.md`: Technical documentation for the Create Internal Task command, dialog, configuration, security, and form integration.
 - `schemas/mandatory-config.contract.yaml`: Machine-readable contract for mandatory configurations.
 - `schemas/entity-metadata.contract.yaml`: Contract for `*.entity.ts` files.
 - `schemas/form-script.contract.yaml`: Contract for form scripts.
