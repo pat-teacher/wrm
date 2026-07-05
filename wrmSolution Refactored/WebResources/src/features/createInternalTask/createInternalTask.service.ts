@@ -290,27 +290,54 @@ function hasCreateInternalTaskParameters(formParameters: Record<string, string>)
     );
 }
 
-function applyInternalTaskCreateDefaultsFromCurrentParameters(executionContext: Xrm.Events.EventContext): boolean {
+function hasFormParameter(formParameters: Record<string, string>, fieldName: string): boolean {
+    return Boolean(formParameters[fieldName]);
+}
+
+function fieldHasValue(formContext: Xrm.FormContext, fieldName: string): boolean {
+    const attribute = formContext.getAttribute(fieldName);
+    const value = attribute?.getValue?.();
+    return Array.isArray(value) ? value.length > 0 : value !== null && value !== undefined;
+}
+
+function fireOnChangeIfFieldHasValue(formContext: Xrm.FormContext, fieldName: string): void {
+    if (!fieldHasValue(formContext, fieldName)) return;
+    formContext.getAttribute(fieldName)?.fireOnChange?.();
+}
+
+function applyInternalTaskCreateDefaultsFromCurrentParameters(
+    executionContext: Xrm.Events.EventContext
+): { hasInternalTaskTypeParameter: boolean } {
     const formContext = executionContext.getFormContext();
-    if (!FormTypeHelper.isCreateLike(FormTypeHelper.get(formContext))) return false;
+    if (!FormTypeHelper.isCreateLike(FormTypeHelper.get(formContext))) {
+        return { hasInternalTaskTypeParameter: false };
+    }
 
     const formParameters = getCurrentWindowFormParameters();
-    if (!hasCreateInternalTaskParameters(formParameters)) return false;
+    if (!hasCreateInternalTaskParameters(formParameters)) {
+        return { hasInternalTaskTypeParameter: false };
+    }
 
-    let applied = false;
-    applied = setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.contactid) || applied;
-    applied = setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.companyid) || applied;
-    applied = setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.portfolioid) || applied;
-    applied = setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.internalTaskType) || applied;
-    return applied;
+    setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.contactid);
+    setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.companyid);
+    setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.portfolioid);
+    setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.internalTaskType);
+
+    return {
+        hasInternalTaskTypeParameter: hasFormParameter(formParameters, INTERNALTASK.fields.internalTaskType),
+    };
 }
 
 export function initializeInternalTaskCreateForm(executionContext: Xrm.Events.EventContext): void {
-    applyInternalTaskCreateDefaultsFromCurrentParameters(executionContext);
+    const defaults = applyInternalTaskCreateDefaultsFromCurrentParameters(executionContext);
 
     const legacy = getLegacyInternalTaskFunctions();
     if (legacy?.OnLoad) {
         legacy.OnLoad(executionContext);
+    }
+
+    if (defaults.hasInternalTaskTypeParameter) {
+        fireOnChangeIfFieldHasValue(executionContext.getFormContext(), INTERNALTASK.fields.internalTaskType);
     }
 }
 

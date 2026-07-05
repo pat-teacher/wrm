@@ -32,6 +32,8 @@ Create-form wrappers must preserve all supported creation paths for the same ent
 
 Wrapper logic must only fill empty fields from provided parameters and must not overwrite values already set by Dynamics relationship mapping, user input, or another supported creation path.
 
+If a wrapper sets field values before invoking a legacy `OnLoad`, and the legacy script registers dependent OnChange handlers during `OnLoad`, the wrapper must trigger the normal Dynamics `fireOnChange` event after the legacy handler has been registered. This keeps the integration aligned with the form event model without directly calling selected private legacy helper functions.
+
 ## New Reusable Feature
 
 A feature is justified when at least one of the following is true:
