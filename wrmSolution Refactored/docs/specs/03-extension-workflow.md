@@ -18,6 +18,20 @@
 5. Add a Webpack entry in `webpack.common.js`.
 6. Register the bundle in Dynamics as a WebResource.
 
+## Legacy Form Integration
+
+When a new feature must integrate with an existing legacy form script, prefer a single explicit wrapper handler over multiple partial compatibility handlers.
+
+The wrapper may prepare context, such as default values from `openForm` parameters, and then call the legacy handler exactly once. Do not keep unused transitional exports after the integration pattern is settled. Avoid duplicating selected fragments of legacy logic in the new feature, because later changes to the legacy handler would not be picked up.
+
+Create-form wrappers must preserve all supported creation paths for the same entity:
+
+- Manual creation, where no feature-specific defaults are provided.
+- Feature-driven creation, where defaults are passed through `openForm` parameters.
+- Related-record or subgrid creation, where relationship mappings may pass parent references through create-form parameters or `extraqs`.
+
+Wrapper logic must only fill empty fields from provided parameters and must not overwrite values already set by Dynamics relationship mapping, user input, or another supported creation path.
+
 ## New Reusable Feature
 
 A feature is justified when at least one of the following is true:
@@ -51,5 +65,6 @@ The following does not belong in Core:
 - Is the behavior configurable when it is business-data-driven?
 - Is a new bundle really required?
 - Is the Dynamics event handler signature correct?
+- Are Dynamics platform codes, such as form types or save modes, referenced through central Core constants or helpers instead of literal values?
 - Is the behavior defensive when controls or attributes are missing?
-
+- Are obsolete transitional exports removed once the final integration handler is defined?

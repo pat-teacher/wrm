@@ -8,6 +8,8 @@ Path: `WebResources/src/core`
 
 Core contains reusable technical building blocks for Dynamics:
 
+- `FORM_TYPE`
+- `FormTypeHelper`
 - `ApiClient`
 - `FormControlHelper`
 - `VisibilityHelper`
@@ -19,6 +21,8 @@ Core contains reusable technical building blocks for Dynamics:
 - `FieldValidator`
 
 Core must not contain business entity rules that only apply to one specific form.
+
+Shared Dynamics platform values, such as form types, save modes, notification levels, and other Xrm numeric or string codes, must be represented as central constants or helpers in Core. Form scripts and features must not use unexplained literal values such as `1` or `5` for form types.
 
 ### Entities
 
@@ -47,6 +51,8 @@ Path: `WebResources/src/form`
 Form scripts export Dynamics event handlers such as `onLoad`, `onSave`, OnChange handlers, or ribbon commands.
 
 Form scripts may contain business orchestration, but reusable logic should be moved to Core or Features.
+
+When integrating with legacy form scripts, the preferred pattern is a single wrapper event handler that prepares required context and invokes the legacy handler exactly once. Avoid parallel registrations that make the same legacy handler run twice, and avoid fragmented compatibility calls to individual legacy helper functions unless there is no stable legacy entry point.
 
 ### Config
 

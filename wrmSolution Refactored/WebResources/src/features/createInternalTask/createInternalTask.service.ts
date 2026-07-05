@@ -1,7 +1,7 @@
 import { INTERNALTASK } from "../../entities/InternalTask.entity";
 import { INTERNALTASKTYPE } from "../../entities/InternalTaskType.entity";
 import { APPCONFIG } from "../../entities/AppConfig.entity";
-import { Util } from "../../core/crm.core";
+import { FormTypeHelper, Util } from "../../core/crm.core";
 import { CREATE_INTERNAL_TASK } from "./createInternalTask.constants";
 import type {
     CreateInternalTaskAvailability,
@@ -235,6 +235,83 @@ function buildInternalTaskFormParameters(
         [`${INTERNALTASK.fields.internalTaskType}name`]: taskType.name,
         [`${INTERNALTASK.fields.internalTaskType}type`]: INTERNALTASKTYPE.entity,
     };
+}
+
+function getCurrentWindowFormParameters(): Record<string, string> {
+    const result: Record<string, string> = {};
+    const search = new URLSearchParams(window.location.search);
+
+    search.forEach((value, key) => {
+        result[key] = value;
+    });
+
+    const extraqs = search.get("extraqs");
+    if (extraqs) {
+        new URLSearchParams(decodeURIComponent(extraqs)).forEach((value, key) => {
+            result[key] = value;
+        });
+    }
+
+    return result;
+}
+
+function setLookupFromFormParameters(
+    formContext: Xrm.FormContext,
+    formParameters: Record<string, string>,
+    fieldName: string
+): boolean {
+    const id = Util.sanitizeGuid(formParameters[fieldName]);
+    const entityType = formParameters[`${fieldName}type`];
+    if (!id || !entityType) return false;
+
+    const attribute = formContext.getAttribute<Xrm.Attributes.LookupAttribute>(fieldName);
+    if (!attribute) return false;
+    if (attribute.getValue()?.[0]?.id) return false;
+
+    attribute.setValue([{
+        id,
+        entityType,
+        name: formParameters[`${fieldName}name`] || undefined,
+    }]);
+    attribute.fireOnChange?.();
+    return true;
+}
+
+function getLegacyInternalTaskFunctions(): any {
+    return (window as any).Ambit?.MAH?.WRM2013?.JS?.InternalTasksFunctions;
+}
+
+function hasCreateInternalTaskParameters(formParameters: Record<string, string>): boolean {
+    return Boolean(
+        formParameters[INTERNALTASK.fields.contactid] ||
+        formParameters[INTERNALTASK.fields.companyid] ||
+        formParameters[INTERNALTASK.fields.portfolioid] ||
+        formParameters[INTERNALTASK.fields.internalTaskType]
+    );
+}
+
+function applyInternalTaskCreateDefaultsFromCurrentParameters(executionContext: Xrm.Events.EventContext): boolean {
+    const formContext = executionContext.getFormContext();
+    if (!FormTypeHelper.isCreateLike(FormTypeHelper.get(formContext))) return false;
+
+    const formParameters = getCurrentWindowFormParameters();
+    if (!hasCreateInternalTaskParameters(formParameters)) return false;
+
+    let applied = false;
+    applied = setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.contactid) || applied;
+    applied = setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.companyid) || applied;
+    applied = setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.portfolioid) || applied;
+    applied = setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.internalTaskType) || applied;
+    return applied;
+}
+
+export function initializeInternalTaskCreateForm(executionContext: Xrm.Events.EventContext): void {
+    applyInternalTaskCreateDefaultsFromCurrentParameters(executionContext);
+
+    const legacy = getLegacyInternalTaskFunctions();
+    if (legacy?.OnLoad) {
+        legacy.OnLoad(executionContext);
+    }
 }
 
 export async function openInternalTaskCreateForm(

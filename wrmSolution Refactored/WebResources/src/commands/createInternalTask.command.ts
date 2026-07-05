@@ -2,6 +2,7 @@ import {
     getCreateInternalTaskAvailability,
     getSourceFromForm,
     getXrm,
+    initializeInternalTaskCreateForm,
     openCreateInternalTaskDialog,
 } from "../features/createInternalTask/createInternalTask.service";
 
@@ -42,4 +43,8 @@ export async function openDialog(primaryControl: Xrm.FormContext): Promise<void>
 
 export function canCreateInternalTask(): boolean {
     return true;
+}
+
+export function initializeCreateForm(executionContext: Xrm.Events.EventContext): void {
+    initializeInternalTaskCreateForm(executionContext);
 }
