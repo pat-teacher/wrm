@@ -57,7 +57,5 @@ Field:  mhwrmb_mandatoryconfigjson
 
 Use the SDD documentation as the maintained source of truth:
 
-* `docs/specs/02-dynamic-mandatory-engine.md`: high-level overview.
-* `docs/specs/05-dynamic-mandatory-engine-technical.md`: technical runtime and form integration.
-* `docs/specs/06-dynamic-mandatory-engine-maintenance.md`: JSON maintenance guide.
+* `docs/specs/02-dynamic-mandatory-engine.md`: overview, technical runtime, form integration, JSON maintenance guide, examples, and troubleshooting.
 * `docs/specs/schemas/mandatory-config.contract.yaml`: machine-readable JSON contract.
