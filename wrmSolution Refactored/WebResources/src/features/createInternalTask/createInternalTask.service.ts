@@ -290,10 +290,6 @@ function hasCreateInternalTaskParameters(formParameters: Record<string, string>)
     );
 }
 
-function hasFormParameter(formParameters: Record<string, string>, fieldName: string): boolean {
-    return Boolean(formParameters[fieldName]);
-}
-
 function fieldHasValue(formContext: Xrm.FormContext, fieldName: string): boolean {
     const attribute = formContext.getAttribute(fieldName);
     const value = attribute?.getValue?.();
@@ -307,25 +303,20 @@ function fireOnChangeIfFieldHasValue(formContext: Xrm.FormContext, fieldName: st
 
 function applyInternalTaskCreateDefaultsFromCurrentParameters(
     executionContext: Xrm.Events.EventContext
-): { hasInternalTaskTypeParameter: boolean } {
+): { isCreateLike: boolean } {
     const formContext = executionContext.getFormContext();
-    if (!FormTypeHelper.isCreateLike(FormTypeHelper.get(formContext))) {
-        return { hasInternalTaskTypeParameter: false };
-    }
+    const isCreateLike = FormTypeHelper.isCreateLike(FormTypeHelper.get(formContext));
+    if (!isCreateLike) return { isCreateLike };
 
     const formParameters = getCurrentWindowFormParameters();
-    if (!hasCreateInternalTaskParameters(formParameters)) {
-        return { hasInternalTaskTypeParameter: false };
-    }
+    if (!hasCreateInternalTaskParameters(formParameters)) return { isCreateLike };
 
     setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.contactid);
     setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.companyid);
     setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.portfolioid);
     setLookupFromFormParameters(formContext, formParameters, INTERNALTASK.fields.internalTaskType);
 
-    return {
-        hasInternalTaskTypeParameter: hasFormParameter(formParameters, INTERNALTASK.fields.internalTaskType),
-    };
+    return { isCreateLike };
 }
 
 export function initializeInternalTaskCreateForm(executionContext: Xrm.Events.EventContext): void {
@@ -336,7 +327,7 @@ export function initializeInternalTaskCreateForm(executionContext: Xrm.Events.Ev
         legacy.OnLoad(executionContext);
     }
 
-    if (defaults.hasInternalTaskTypeParameter) {
+    if (defaults.isCreateLike) {
         fireOnChangeIfFieldHasValue(executionContext.getFormContext(), INTERNALTASK.fields.internalTaskType);
     }
 }
