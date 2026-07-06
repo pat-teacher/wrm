@@ -2,28 +2,28 @@
 
 ## Table of Contents
 
-- Purpose
-- Supported Entities
-- Rule Summary
-- Runtime Safety
-- Technical Documentation
-- Maintenance Guide
-- Condition Value Examples
-  - Text
-  - Boolean
-  - OptionSet
-  - Multi-select OptionSet
-  - Lookup by name
-  - Lookup by ID
-  - Lookup entity type
-- Rule Examples
-  - No rule matches, use default
-  - Two rules match, mandatory fields are merged
-  - Multiple conditions in one rule
-  - Multi-select overlap
-  - Lookup by GUID
-  - Lookup by name
-  - Owner is user instead of team
+- [Purpose](#purpose)
+- [Supported Entities](#supported-entities)
+- [Rule Summary](#rule-summary)
+- [Runtime Safety](#runtime-safety)
+- [Technical Documentation](#technical-documentation)
+- [Maintenance Guide](#maintenance-guide)
+- [Condition Value Examples](#value-examples)
+  - [Text](#text)
+  - [Boolean](#boolean)
+  - [OptionSet](#optionset)
+  - [Multi-select OptionSet](#multi-select-optionset)
+  - [Lookup by name](#lookup-by-name)
+  - [Lookup by ID](#lookup-by-id)
+  - [Lookup entity type](#lookup-entity-type)
+- [Rule Examples](#rule-examples)
+  - [No rule matches, use default](#no-rule-matches-use-default)
+  - [Two rules match, mandatory fields are merged](#two-rules-match-mandatory-fields-are-merged)
+  - [Multiple conditions in one rule](#multiple-conditions-in-one-rule)
+  - [Multi-select overlap](#multi-select-overlap)
+  - [Lookup by GUID](#lookup-by-guid)
+  - [Lookup by name](#lookup-by-name-1)
+  - [Owner is user instead of team](#owner-is-user-instead-of-team)
 
 ## Purpose
 

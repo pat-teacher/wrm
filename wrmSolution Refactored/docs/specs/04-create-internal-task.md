@@ -1,5 +1,28 @@
 # Create Internal Task
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [User Flow](#user-flow)
+- [Main Components](#main-components)
+- [Dataverse Configuration](#dataverse-configuration)
+- [JSON Configuration](#json-configuration)
+  - [JSON Properties](#json-properties)
+- [Security Role Behavior](#security-role-behavior)
+- [Source Lookup Mapping](#source-lookup-mapping)
+- [Form Integration](#form-integration)
+- [Legacy Script Integration](#legacy-script-integration)
+- [Required Dynamics Form Setup](#required-dynamics-form-setup)
+- [Required Command Bar Setup](#required-command-bar-setup)
+- [Required WebResources](#required-webresources)
+- [Supported Creation Paths](#supported-creation-paths)
+- [Troubleshooting](#troubleshooting)
+  - [The button opens, but the dialog shows no options](#the-button-opens-but-the-dialog-shows-no-options)
+  - [The user gets a permission message](#the-user-gets-a-permission-message)
+  - [The Internal Task Type is not found](#the-internal-task-type-is-not-found)
+  - [Approval Flow Type or Flow Step are not set](#approval-flow-type-or-flow-step-are-not-set)
+- [Deployment Notes](#deployment-notes)
+
 ## Purpose
 
 The Create Internal Task feature allows users to create a new `Internal Task` from supported source records through a command bar button.
