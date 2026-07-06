@@ -13,6 +13,7 @@
   - [Boolean](#boolean)
   - [OptionSet](#optionset)
   - [Multi-select OptionSet](#multi-select-optionset)
+  - [Not in](#not-in)
   - [Lookup by name](#lookup-by-name)
   - [Lookup by ID](#lookup-by-id)
   - [Lookup entity type](#lookup-entity-type)
@@ -294,6 +295,7 @@ If `condition` is missing or empty, the rule always matches.
 | `eq` | Equal. |
 | `ne` | Not equal. |
 | `in` | Actual value is in the configured value list. For multi-select fields, any overlap is enough. |
+| `not in` | Actual value is not in the configured value list. For multi-select fields, no overlap is allowed. |
 | `isnull` | Empty or not set. |
 | `isnotnull` | Set and not empty. |
 | `notnull` | Alias for `isnotnull`. |
@@ -557,6 +559,7 @@ Use only these operators:
 | `eq` | Value equals configured value. |
 | `ne` | Value does not equal configured value. |
 | `in` | Value is in configured list. |
+| `not in` | Value is not in configured list. |
 | `isnull` | Field is empty. |
 | `isnotnull` | Field is not empty. |
 | `notnull` | Same as `isnotnull`. |
@@ -594,6 +597,14 @@ Use the numeric option value, not the label.
 ```
 
 For multi-select fields, `in` matches when at least one selected value overlaps with the configured list.
+
+#### Not In
+
+```json
+{ "field": "customertypecode", "operator": "not in", "value": [1, 2, 3] }
+```
+
+For multi-select fields, `not in` matches only when none of the selected values overlaps with the configured list.
 
 #### Lookup By Name
 

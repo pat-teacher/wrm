@@ -30,7 +30,7 @@ export interface OwnerRef {
 }
 
 // ---- Types shared across engine & entities ----
-export type Operator = "eq" | "ne" | "in" | "isnull" | "isnotnull" | "notnull"; // alias
+export type Operator = "eq" | "ne" | "in" | "not in" | "notin" | "not_in" | "isnull" | "isnotnull" | "notnull"; // aliases
 
 export interface Condition {
     /** Logical name (supports dot-notation for lookup projections: e.g., "primarycontactid.name"). */

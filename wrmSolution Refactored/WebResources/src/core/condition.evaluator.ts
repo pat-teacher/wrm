@@ -91,6 +91,10 @@ export function evaluateCondition(actual: unknown, condition: Condition): boolea
             return !equalsSmart(actual, val);
         case "in":
             return inSmart(actual, val);
+        case "not in":
+        case "notin":
+        case "not_in":
+            return !inSmart(actual, val);
         case "isnull":
             return isNullishOrEmpty(actual);
         case "isnotnull":
