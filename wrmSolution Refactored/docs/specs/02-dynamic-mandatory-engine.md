@@ -338,6 +338,12 @@ During initialization, the engine registers an OnChange handler on the Location 
 
 This allows Create forms to load mandatory rules after the user selects a Location / Business Unit lookup value, even though the source record itself has not been saved yet.
 
+### Quick Create Forms
+
+The engine is disabled on Quick Create forms because those forms do not contain all attributes required for reliable rule evaluation.
+
+Both public form handlers return immediately on Quick Create. The engine does not load configuration, set required levels, or register OnChange handlers there.
+
 After a configuration has been loaded, the engine reads all condition fields from the entity configuration and registers an OnChange handler on each base attribute.
 
 Example:

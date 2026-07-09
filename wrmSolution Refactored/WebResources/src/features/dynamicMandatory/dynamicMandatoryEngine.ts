@@ -1,5 +1,5 @@
 import type { BusinessUnitConfig, Condition, EntityConfig } from "../../core/crm.core";
-import { ApiClient, Util, VisibilityHelper } from "../../core/crm.core";
+import { ApiClient, FORM_TYPE, Util, VisibilityHelper } from "../../core/crm.core";
 import { evaluateCondition, readAttributeValue, isLookupArray } from "../../core/condition.evaluator";
 import { BUSINESSUNITLOCATION, parseBusinessUnitConfig, listConditionFields } from "../../entities/MandatoryConfig.entity";
 import { CONTACT } from "../../entities/Contact.entity";
@@ -12,6 +12,8 @@ const lastAppliedEntityConfig = new WeakMap<Xrm.FormContext, EntityConfig>();
 
 export async function initializeDynamicMandatoryFields(executionContext: Xrm.Events.EventContext): Promise<void> {
     const formContext = executionContext.getFormContext();
+    if (isQuickCreateForm(formContext)) return;
+
     wireBusinessUnitLookupOnChange(formContext);
     const config = await loadBusinessUnitConfig(formContext);
     applyConfigMerged(formContext, config);
@@ -20,8 +22,18 @@ export async function initializeDynamicMandatoryFields(executionContext: Xrm.Eve
 
 export async function applyDynamicMandatoryRules(executionContext: Xrm.Events.EventContext): Promise<void> {
     const formContext = executionContext.getFormContext();
+    if (isQuickCreateForm(formContext)) return;
+
     const config = await loadBusinessUnitConfig(formContext);
     applyConfigMerged(formContext, config);
+}
+
+function isQuickCreateForm(formContext: Xrm.FormContext): boolean {
+    const formType = formContext.ui?.getFormType?.();
+    if (formType === FORM_TYPE.QuickCreate) return true;
+
+    const formSelector = formContext.ui?.formSelector;
+    return formType === FORM_TYPE.Create && (!formSelector || typeof formSelector.getCurrentItem !== "function");
 }
 
 async function loadBusinessUnitConfig(formContext: Xrm.FormContext): Promise<BusinessUnitConfig | null> {
