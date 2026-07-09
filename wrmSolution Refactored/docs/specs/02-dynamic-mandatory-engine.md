@@ -126,13 +126,13 @@ It performs the full initialization:
 3. Load the JSON configuration from Dataverse.
 4. Parse the JSON.
 5. Apply the matching mandatory rules.
-6. Auto-register OnChange handlers for all fields used in rule conditions.
+6. Auto-register OnChange handlers for the Location / Business Unit lookup and all fields used in rule conditions.
 
 #### applyDynamicMandatoryRules
 
 This handler reapplies the mandatory logic.
 
-The engine registers it automatically on all condition fields. It may also be registered manually if a form requires explicit re-evaluation from another event.
+The engine registers it automatically on all condition fields. The Location / Business Unit lookup is also monitored so Create forms can load mandatory configuration after the user selects a lookup value. The handler may also be registered manually if a form requires explicit re-evaluation from another event.
 
 ### Dataverse Configuration Source
 
@@ -198,11 +198,9 @@ contact
 | `wrmb_portfolio` | `ambcust_locationid` |
 
 5. The engine reads the lookup value from the form.
-6. If the lookup is empty, the engine stops and applies no required-field changes.
+6. If the lookup is empty, the engine clears any previously applied dynamic required-field changes and applies no new required-field changes.
 7. If the lookup has a value, the GUID is sanitized and used as the Location / Business Unit ID.
-8. The engine checks the browser-session cache with key `location:{id}`.
-9. If the config is already cached, the cached config is reused.
-10. If the config is not cached, the engine loads the record from Dataverse:
+8. The engine loads the related Location / Business Unit record from Dataverse:
 
 ```text
 Table: ambcust_location
@@ -210,9 +208,9 @@ ID:    Location / Business Unit lookup ID
 Field: mhwrmb_mandatoryconfigjson
 ```
 
-11. The JSON text from `mhwrmb_mandatoryconfigjson` is parsed.
-12. If the JSON is empty, invalid, or does not contain `entities`, the parsed config is `null` and no rules are applied.
-13. If the JSON is valid, the engine reads the matching entity block:
+9. The JSON text from `mhwrmb_mandatoryconfigjson` is parsed.
+10. If the JSON is empty, invalid, or does not contain `entities`, the parsed config is `null` and no rules are applied.
+11. If the JSON is valid, the engine reads the matching entity block:
 
 ```ts
 const entityLogicalName = formContext.data.entity.getEntityName();
@@ -238,26 +236,27 @@ This maps to the JSON block:
 }
 ```
 
-14. If there is no block for the current entity, the engine stops and applies no changes.
-15. The engine builds a set of all fields that could be mandatory:
+12. If there is no block for the current entity, the engine clears any previously applied dynamic required-field changes and applies no new changes.
+13. The engine builds a set of all fields that could be mandatory:
     - all fields from `entityConfig.default`,
     - all fields from every `rules[].mandatory`.
-16. The engine resets all these fields to optional with `required = false`.
-17. The engine evaluates every rule in `entityConfig.rules`.
-18. A rule matches only when all conditions in its `condition` array match.
-19. If a rule matches, all fields from that rule's `mandatory` array are added to a merged list.
-20. Duplicate field names are ignored in the merged list.
-21. After all rules are evaluated:
+14. The engine resets all these fields to optional with `required = false`.
+15. The engine evaluates every rule in `entityConfig.rules`.
+16. A rule matches only when all conditions in its `condition` array match.
+17. If a rule matches, all fields from that rule's `mandatory` array are added to a merged list.
+18. Duplicate field names are ignored in the merged list.
+19. After all rules are evaluated:
     - if the merged list contains fields, those fields are set to required,
     - if the merged list is empty, the fields from `entityConfig.default` are set to required.
-22. After applying the rules, the engine registers OnChange handlers for all fields used in rule conditions.
-23. When one of those condition fields changes, the engine reruns only the apply part:
+20. After applying the rules, the engine registers OnChange handlers for all fields used in rule conditions.
+21. When the Location / Business Unit lookup changes, the engine reloads the related configuration, resets previously applied dynamic required fields, applies the new matching rules, and wires condition-field OnChange handlers for the new configuration.
+22. When one of those condition fields changes, the engine reruns only the apply part:
 
 ```text
 WRM.dynamicMandatoryEngine.applyDynamicMandatoryRules
 ```
 
-This reloads the configuration through the same cache-aware loading logic and reapplies the reset/evaluate/merge/default sequence.
+This reloads the configuration from Dataverse and reapplies the reset/evaluate/merge/default sequence.
 
 Important behavior:
 
@@ -335,7 +334,11 @@ Without projection, lookup comparison behaves as follows:
 
 ### OnChange Wiring
 
-During initialization, the engine reads all condition fields from the entity configuration and registers an OnChange handler on each base attribute.
+During initialization, the engine registers an OnChange handler on the Location / Business Unit lookup for the current entity.
+
+This allows Create forms to load mandatory rules after the user selects a Location / Business Unit lookup value, even though the source record itself has not been saved yet.
+
+After a configuration has been loaded, the engine reads all condition fields from the entity configuration and registers an OnChange handler on each base attribute.
 
 Example:
 
@@ -351,22 +354,19 @@ primarycontactid
 
 When one of these fields changes, the mandatory rules are evaluated again.
 
-### Cache Behavior
+OnChange handlers are registered only once per form attribute.
 
-The loaded configuration is cached in the browser session by Location / Business Unit ID.
+### Configuration Loading
 
-Cache key examples:
+The engine does not cache Location / Business Unit configuration.
 
-```text
-location:aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
-location:null
-```
+Each initialization, Location / Business Unit lookup change, or condition-field change loads the current `mhwrmb_mandatoryconfigjson` value from Dataverse before evaluating rules.
 
 Implications:
 
-- Reopening or refreshing the form loads the current configuration.
-- Changes to the JSON may not affect an already opened form immediately if the same Location / Business Unit was already loaded in that browser session.
-- If a tester changes JSON configuration, refresh the browser tab before retesting.
+- Changes to the JSON can be tested without browser-session cache invalidation.
+- Every re-evaluation reflects the latest available Dataverse value.
+- Forms with many condition changes may issue more Web API reads than a cached implementation.
 
 ### Error Handling
 
@@ -823,9 +823,9 @@ Check:
 
 #### Changes do not appear immediately
 
-The engine caches configuration per Location / Business Unit in the browser session.
+The engine loads configuration from Dataverse on every re-evaluation.
 
-Refresh the form browser tab after changing `mhwrmb_mandatoryconfigjson`.
+If changes still do not appear, check that `mhwrmb_mandatoryconfigjson` was saved on the related Location / Business Unit record and that the form's Location / Business Unit lookup points to that record.
 
 #### A field is configured but not required
 

@@ -7,10 +7,12 @@ import { COMPANY } from "../../entities/Company.entity";
 import { ACCOUNT } from "../../entities/Account.entity";
 
 
-const businessUnitConfigCache = new Map<string, BusinessUnitConfig | null>();
+const wiredOnChangeAttributes = new WeakMap<Xrm.FormContext, Set<string>>();
+const lastAppliedEntityConfig = new WeakMap<Xrm.FormContext, EntityConfig>();
 
 export async function initializeDynamicMandatoryFields(executionContext: Xrm.Events.EventContext): Promise<void> {
     const formContext = executionContext.getFormContext();
+    wireBusinessUnitLookupOnChange(formContext);
     const config = await loadBusinessUnitConfig(formContext);
     applyConfigMerged(formContext, config);
     autoWireOnChange(formContext, config);
@@ -28,11 +30,7 @@ async function loadBusinessUnitConfig(formContext: Xrm.FormContext): Promise<Bus
     const val = attr?.getValue?.();
     const locationId = isLookupArray(val) ? Util.sanitizeGuid(val[0].id) : null;
 
-    const cacheKey = locationId ? `location:${locationId}` : "location:null";
-    if (businessUnitConfigCache.has(cacheKey)) return businessUnitConfigCache.get(cacheKey) ?? null;
-
     if (!locationId) {
-        businessUnitConfigCache.set(cacheKey, null);
         return null;
     }
 
@@ -40,23 +38,36 @@ async function loadBusinessUnitConfig(formContext: Xrm.FormContext): Promise<Bus
         const fieldLogical = BUSINESSUNITLOCATION.fields.mandatoryConfigJson;
         const rec = await ApiClient.retrieveRecord(BUSINESSUNITLOCATION.entity, locationId, `?$select=${fieldLogical}`);
         const jsonText = (rec as Record<string, unknown>)[fieldLogical] as string | null;
-        const parsed = parseBusinessUnitConfig(jsonText);
-        businessUnitConfigCache.set(cacheKey, parsed);
-        return parsed;
+        return parseBusinessUnitConfig(jsonText);
     } catch {
-        businessUnitConfigCache.set(cacheKey, null);
         return null;
     }
 }
 
 function applyConfigMerged(formContext: Xrm.FormContext, config: BusinessUnitConfig | null): void {
-    if (!config?.entities) return;
+    const previousEntityConfig = lastAppliedEntityConfig.get(formContext);
+    if (!config?.entities) {
+        if (previousEntityConfig) {
+            resetPotentialMandatory(formContext, previousEntityConfig);
+            lastAppliedEntityConfig.delete(formContext);
+        }
+        return;
+    }
+
     const entityLogicalName = formContext.data.entity.getEntityName();
     const entityConfig: EntityConfig | undefined = config.entities[entityLogicalName];
-    if (!entityConfig) return;
+    if (!entityConfig) {
+        if (previousEntityConfig) {
+            resetPotentialMandatory(formContext, previousEntityConfig);
+            lastAppliedEntityConfig.delete(formContext);
+        }
+        return;
+    }
 
     // 1) Reset: clear required flag for all fields that could be marked mandatory by defaults or any rule
+    if (previousEntityConfig) resetPotentialMandatory(formContext, previousEntityConfig);
     resetPotentialMandatory(formContext, entityConfig);
+    lastAppliedEntityConfig.set(formContext, entityConfig);
 
     // 2) Evaluate rules and merge resulting mandatory fields
     const merged: string[] = [];
@@ -97,14 +108,43 @@ function autoWireOnChange(formContext: Xrm.FormContext, config: BusinessUnitConf
     const entityConfig = config.entities[entityLogicalName] as EntityConfig | undefined;
     const fields = listConditionFields(entityConfig);
     for (const attributeName of fields) {
-        const attribute = formContext.getAttribute(attributeName);
-        if (!attribute) continue;
-        const handler = (ctx: Xrm.Events.EventContext) => applyDynamicMandatoryRules(ctx);
-        try {
-            attribute.addOnChange(handler);
-        } catch {
-            // ignore
-        }
+        wireAttributeOnChange(formContext, attributeName, (ctx: Xrm.Events.EventContext) => applyDynamicMandatoryRules(ctx));
+    }
+}
+
+function wireBusinessUnitLookupOnChange(formContext: Xrm.FormContext): void {
+    const businessUnitAttribute = getBusinessUnitAttributeForForm(formContext);
+    if (!businessUnitAttribute) return;
+
+    wireAttributeOnChange(formContext, businessUnitAttribute, async (ctx: Xrm.Events.EventContext) => {
+        const currentFormContext = ctx.getFormContext();
+        const config = await loadBusinessUnitConfig(currentFormContext);
+        applyConfigMerged(currentFormContext, config);
+        autoWireOnChange(currentFormContext, config);
+    });
+}
+
+function wireAttributeOnChange(
+    formContext: Xrm.FormContext,
+    attributeName: string,
+    handler: (ctx: Xrm.Events.EventContext) => void | Promise<void>
+): void {
+    let wiredAttributes = wiredOnChangeAttributes.get(formContext);
+    if (!wiredAttributes) {
+        wiredAttributes = new Set<string>();
+        wiredOnChangeAttributes.set(formContext, wiredAttributes);
+    }
+
+    if (wiredAttributes.has(attributeName)) return;
+
+    const attribute = formContext.getAttribute(attributeName);
+    if (!attribute) return;
+
+    try {
+        attribute.addOnChange(handler);
+        wiredAttributes.add(attributeName);
+    } catch {
+        // ignore
     }
 }
 
