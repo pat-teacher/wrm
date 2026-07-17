@@ -445,7 +445,6 @@ Local example files are available for review and development:
 ```text
 WebResources/src/config/BusinessUnitMandatoryConfig.basic.example.json
 WebResources/src/config/BusinessUnitMandatoryConfig.lookup-guid.example.json
-MandatoryConfigJson-QuickGuide.md
 ```
 
 The local files are examples only. The runtime engine reads the JSON from Dynamics.
